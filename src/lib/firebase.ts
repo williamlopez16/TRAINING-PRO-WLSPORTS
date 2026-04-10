@@ -3,14 +3,20 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, signOu
 import { getFirestore } from 'firebase/firestore';
 
 // Try to load config if it exists
-let firebaseConfig = null;
+let firebaseConfig: any = null;
 try {
-  // We use a dynamic import or just check if the env vars are present
-  // In AI Studio, the config is usually in firebase-applet-config.json
-  // For now, we will rely on the user providing it later.
   const configStr = (import.meta as any).env.VITE_FIREBASE_CONFIG;
   if (configStr) {
     firebaseConfig = JSON.parse(configStr);
+  } else if ((import.meta as any).env.VITE_FIREBASE_PROJECT_ID) {
+    firebaseConfig = {
+      apiKey: (import.meta as any).env.VITE_FIREBASE_API_KEY,
+      authDomain: (import.meta as any).env.VITE_FIREBASE_AUTH_DOMAIN,
+      projectId: (import.meta as any).env.VITE_FIREBASE_PROJECT_ID,
+      storageBucket: (import.meta as any).env.VITE_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: (import.meta as any).env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+      appId: (import.meta as any).env.VITE_FIREBASE_APP_ID
+    };
   }
 } catch (e) {
   console.warn('Firebase config not found or invalid.');

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppStore } from './store/useAppStore';
 import Login from './pages/Login';
@@ -11,6 +12,14 @@ import AthleteDashboard from './pages/athlete/AthleteDashboard';
 
 export default function App() {
   const user = useAppStore(state => state.user);
+  const initListeners = useAppStore(state => state.initListeners);
+
+  useEffect(() => {
+    if (user) {
+      const unsub = initListeners(user.uid, user.role);
+      return () => unsub();
+    }
+  }, [user, initListeners]);
 
   return (
     <Router>

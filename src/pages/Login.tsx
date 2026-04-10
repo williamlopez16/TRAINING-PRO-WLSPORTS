@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Activity, User, Shield } from 'lucide-react';
-import { loginWithGoogle, loginAnonymously } from '../lib/firebase';
+import { Activity, User as UserIcon, Shield } from 'lucide-react';
+import { loginWithGoogle, loginAnonymously, db } from '../lib/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 export default function Login() {
   const setUser = useAppStore(state => state.setUser);
@@ -27,21 +28,32 @@ export default function Login() {
         result = await loginAnonymously();
       }
       
-      // In a real app, we would fetch the user's role from Firestore here.
-      // For this demo, we'll just set it based on the button they clicked.
-      setUser({
+      const userObj = {
         uid: result.user.uid,
         email: result.user.email,
         displayName: result.user.displayName || 'Usuario Anónimo',
         role,
         photoURL: result.user.photoURL
-      });
+      };
+
+      if (db) {
+        const userRef = doc(db, 'users', result.user.uid);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          await setDoc(userRef, userObj);
+        } else {
+          // Use existing role if they already signed up
+          userObj.role = userSnap.data().role;
+        }
+      }
+
+      setUser(userObj);
     } catch (error: any) {
-      console.error(error);
       if (error.message === "Firebase not configured") {
         // Silently fallback to mock login
         handleMockLogin(role);
       } else {
+        console.error(error);
         alert("Error al iniciar sesión: " + error.message);
       }
     } finally {
@@ -77,7 +89,7 @@ export default function Login() {
 
           <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-medium text-white flex items-center gap-2">
-              <User className="w-5 h-5 text-blue-500" />
+              <UserIcon className="w-5 h-5 text-blue-500" />
               Soy Alumno / Padre
             </h2>
             <button
