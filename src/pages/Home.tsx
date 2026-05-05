@@ -126,6 +126,12 @@ export function Home({ onNavigate }: HomeProps) {
         </div>
       </header>
 
+      <div className="mb-8 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 text-center">
+        <p className="text-sm font-medium text-blue-800 italic">
+          "Cada nuevo grupo es una oportunidad para aprender a <br className="sm:hidden" />convivir, adaptarse y crecer."
+        </p>
+      </div>
+
       <form onSubmit={handleCreate} className="mb-8 flex gap-2 relative">
         <input
           type="text"
