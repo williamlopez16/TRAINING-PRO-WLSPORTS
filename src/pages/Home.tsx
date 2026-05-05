@@ -9,7 +9,7 @@ interface HomeProps {
 }
 
 export function Home({ onNavigate }: HomeProps) {
-  const { courses, addCourse, deleteCourse, duplicateCourse, updateCourseName } = useAppStore();
+  const { courses, addCourse, deleteCourse, duplicateCourse, updateCourseName, importData: storeImportData } = useAppStore();
   const [newCourseName, setNewCourseName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
@@ -81,7 +81,8 @@ export function Home({ onNavigate }: HomeProps) {
         const parsed = JSON.parse(content);
         if (parsed && typeof parsed === 'object' && parsed.state) {
           localStorage.setItem('edu-groups-storage', content);
-          window.location.reload();
+          storeImportData(parsed.state.courses || [], parsed.state.histories || []);
+          alert('¡Datos importados con éxito!');
         } else {
           alert('El archivo no tiene el formato correcto.');
         }

@@ -108,38 +108,65 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
 
   const processAIImport = async (text: string) => {
     setIsProcessingAI(true);
+    let data;
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("API key no encontrada. Configura GEMINI_API_KEY.");
+      try {
+      // Intento primario: Usar el backend (funciona en entorno de AI Studio / Express)
+      const res = await fetch('/api/parse-students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      if (!res.ok) {
+        throw new Error("Backend no disponible");
       }
-      
-      const ai = new GoogleGenAI({ apiKey });
-      const response = await ai.models.generateContent({
-        model: "gemini-3.1-pro-preview",
-        contents: `Extrae la lista de estudiantes de este texto basura/PDF, ignora cosas como encabezados, profesores o materias. Formatea un JSON.
-        De cada estudiante deduce si es hombre o mujer guiándote por el nombre (M = Masculino, F = Femenino, si no estás seguro al 100% o es ambiguo pon O).
-        Devuelve un JSON estrictamente con esta estructura:
-        {
-          "students": [
-            { "name": "Nombre completo Capitalizado", "gender": "M" | "F" | "O" }
-          ]
+      data = await res.json();
+    } catch (backendErr) {
+      // Fallback para sitios estáticos (Vercel) sin backend
+      try {
+        let apiKey = localStorage.getItem('user_gemini_api_key');
+        if (!apiKey) {
+          apiKey = window.prompt("Parece que la app está alojada estáticamente (P ej. Vercel) y no se pudo ejecutar el backend. Para usar la IA, por favor ingresa una API Key de Gemini válida:");
+          if (apiKey) {
+            localStorage.setItem('user_gemini_api_key', apiKey);
+          } else {
+            throw new Error("API key no encontrada. Configura GEMINI_API_KEY o provéela en el diálogo.");
+          }
         }
         
-        Texto:
-        ${text}`,
-        config: {
-          responseMimeType: "application/json",
-          temperature: 0.2,
+        const ai = new GoogleGenAI({ apiKey });
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: `Extrae la lista de estudiantes de este texto basura/PDF, ignora cosas como encabezados, profesores o materias. Formatea un JSON.
+          De cada estudiante deduce si es hombre o mujer guiándote por el nombre (M = Masculino, F = Femenino, si no estás seguro al 100% o es ambiguo pon O).
+          Devuelve un JSON estrictamente con esta estructura:
+          {
+            "students": [
+              { "name": "Nombre completo Capitalizado", "gender": "M" | "F" | "O" }
+            ]
+          }
+          
+          Texto:
+          ${text}`,
+          config: {
+            responseMimeType: "application/json",
+            temperature: 0.2,
+          }
+        });
+  
+        if (!response.text) {
+          throw new Error("No se pudo generar una respuesta.");
         }
-      });
-
-      if (!response.text) {
-        throw new Error("No se pudo generar una respuesta.");
+        data = JSON.parse(response.text);
+      } catch (clientErr: any) {
+        if (clientErr.message.includes("API key not valid") || clientErr.message.includes("API_KEY_INVALID")) {
+          localStorage.removeItem('user_gemini_api_key');
+        }
+        throw clientErr;
       }
-      const data = JSON.parse(response.text);
+    }
 
-      if (data.students && Array.isArray(data.students)) {
+    if (data && data.students && Array.isArray(data.students)) {
          setPreviewStudents(data.students.filter((s:any) => s.name));
       } else {
          alert("No se pudo extraer la información del texto.");

@@ -26,6 +26,53 @@ async function startServer() {
     }
   });
 
+  app.post("/api/parse-students", async (req, res) => {
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        return res.status(500).json({ error: "GEMINI_API_KEY env is missing." });
+      }
+
+      const { GoogleGenAI } = await import("@google/genai");
+      const ai = new GoogleGenAI({ apiKey });
+
+      const { text } = req.body;
+      if (!text) {
+        return res.status(400).json({ error: "No text provided" });
+      }
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `Extrae la lista de estudiantes de este texto basura/PDF, ignora cosas como encabezados, profesores o materias. Formatea un JSON.
+        De cada estudiante deduce si es hombre o mujer guiándote por el nombre (M = Masculino, F = Femenino, si no estás seguro al 100% o es ambiguo pon O).
+        Devuelve un JSON estrictamente con esta estructura:
+        {
+          "students": [
+            { "name": "Nombre completo Capitalizado", "gender": "M" | "F" | "O" }
+          ]
+        }
+        
+        Texto:
+        ${text}`,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.2,
+        }
+      });
+
+      if (!response.text) {
+        return res.status(500).json({ error: "Failed to generate response" });
+      }
+
+      const parsed = JSON.parse(response.text);
+      res.json(parsed);
+
+    } catch (e: any) {
+      console.error(e);
+      res.status(500).json({ error: e.message || "Unknown error" });
+    }
+  });
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

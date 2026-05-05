@@ -24,6 +24,9 @@ interface AppState {
   // History
   saveHistory: (history: GroupResult) => void;
   deleteHistory: (historyId: string) => void;
+
+  // Import Data
+  importData: (courses: Course[], histories: GroupResult[]) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -125,7 +128,9 @@ export const useAppStore = create<AppState>()(
       
       deleteHistory: (historyId: string) => set((state) => ({
         histories: state.histories.filter(h => h.id !== historyId)
-      }))
+      })),
+
+      importData: (courses, histories) => set({ courses, histories })
     }),
     {
       name: 'edu-groups-storage',
