@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Plus, Users, Copy, Trash2, Edit2, Play, Search, Link2 } from 'lucide-react';
+import { Plus, Users, Copy, Trash2, Edit2, Play, Search, Link2, Download, Upload } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { View } from '../App';
 
@@ -13,6 +13,7 @@ export function Home({ onNavigate }: HomeProps) {
   const [newCourseName, setNewCourseName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,11 +34,74 @@ export function Home({ onNavigate }: HomeProps) {
     setEditingId(null);
   };
 
+  const exportData = () => {
+    const data = localStorage.getItem('wlsports-storage');
+    if (!data) return alert('No hay datos para exportar.');
+    
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wlsports-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const content = event.target?.result as string;
+        const parsed = JSON.parse(content);
+        if (parsed && typeof parsed === 'object' && parsed.state) {
+          localStorage.setItem('wlsports-storage', content);
+          window.location.reload();
+        } else {
+          alert('El archivo no tiene el formato correcto.');
+        }
+      } catch (err) {
+        alert('Error al leer el archivo JSON.');
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
   return (
     <div className="flex-1 flex flex-col pt-8 pb-20 px-6">
-      <header className="mb-8">
-        <h1 className="text-3xl font-black tracking-tight text-slate-900">WLSPORTS <span className="text-blue-600">Groups</span></h1>
-        <p className="text-slate-500 font-medium mt-1">Organizador Inteligente de Grupos</p>
+      <header className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-slate-900">WLSPORTS <span className="text-blue-600">Groups</span></h1>
+          <p className="text-slate-500 font-medium mt-1">Organizador Inteligente de Grupos</p>
+        </div>
+        <div className="flex gap-2">
+          <button 
+            onClick={exportData}
+            title="Exportar base de datos"
+            className="p-2 bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-200 transition-colors"
+          >
+            <Download className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={() => fileInputRef.current?.click()}
+            title="Importar base de datos"
+            className="p-2 bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-200 transition-colors"
+          >
+            <Upload className="w-5 h-5" />
+          </button>
+          <input 
+            type="file" 
+            accept=".json" 
+            className="hidden" 
+            ref={fileInputRef} 
+            onChange={importData} 
+          />
+        </div>
       </header>
 
       <form onSubmit={handleCreate} className="mb-8 flex gap-2 relative">
