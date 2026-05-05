@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Course, Student, GroupResult, Gender } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import initialData from './initialData.json';
 
 interface AppState {
   courses: Course[];
@@ -28,8 +29,8 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
-      courses: [],
-      histories: [],
+      courses: initialData.courses as Course[] || [],
+      histories: initialData.histories as GroupResult[] || [],
 
       addCourse: (name: string) => set((state) => ({
         courses: [...state.courses, { id: uuidv4(), name, students: [], createdAt: Date.now() }]

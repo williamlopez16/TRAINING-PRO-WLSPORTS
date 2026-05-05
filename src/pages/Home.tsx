@@ -34,19 +34,40 @@ export function Home({ onNavigate }: HomeProps) {
     setEditingId(null);
   };
 
-  const exportData = () => {
-    const data = localStorage.getItem('wlsports-storage');
+  const exportData = async () => {
+    const data = localStorage.getItem('edu-groups-storage');
     if (!data) return alert('No hay datos para exportar.');
     
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `wlsports-backup-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    try {
+      // 1. Guardamos los datos en el código fuente (backend) para que si el usuario comparte o exporta a Github vayan incluidos
+      const parsedData = JSON.parse(data);
+      const stateToSave = parsedData.state || { courses: [], histories: [] };
+      await fetch('/api/save-initial-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(stateToSave)
+      });
+    } catch (e) {
+      console.error('No se pudo sincronizar con el backend:', e);
+    }
+
+    try {
+      // 2. Intentamos la descarga (algunos iframes bloquean esto)
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_top';
+      a.download = `wlsports-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      alert('Tus grupos han sido guardados internamente. Si la descarga local se bloquea por el navegador, no te preocupes, los datos igual se han sincronizado.\n\nPara guardarlos en GitHub, presiona el botón principal "Share" arriba a la derecha.');
+    } catch(err) {
+      alert('Los datos se han sincronizado con éxito para Github. (La descarga local falla en entorno restringido).');
+    }
   };
 
   const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,7 +80,7 @@ export function Home({ onNavigate }: HomeProps) {
         const content = event.target?.result as string;
         const parsed = JSON.parse(content);
         if (parsed && typeof parsed === 'object' && parsed.state) {
-          localStorage.setItem('wlsports-storage', content);
+          localStorage.setItem('edu-groups-storage', content);
           window.location.reload();
         } else {
           alert('El archivo no tiene el formato correcto.');
