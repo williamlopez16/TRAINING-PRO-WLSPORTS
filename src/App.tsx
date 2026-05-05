@@ -1,38 +1,28 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
+import React, { useState } from 'react';
+import { Home } from './pages/Home';
+import { CourseDetail } from './pages/CourseDetail';
+import { GroupGenerator } from './pages/GroupGenerator';
 
-import { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAppStore } from './store/useAppStore';
-import Login from './pages/Login';
-import CoachDashboard from './pages/coach/CoachDashboard';
-import AthleteDashboard from './pages/athlete/AthleteDashboard';
+export type View = 'home' | 'course' | 'generator';
 
 export default function App() {
-  const user = useAppStore(state => state.user);
-  const initListeners = useAppStore(state => state.initListeners);
-
-  useEffect(() => {
-    if (user) {
-      const unsub = initListeners(user.uid, user.role);
-      return () => unsub();
+  const [view, setView] = useState<View>('home');
+  const [activeCourseId, setActiveCourseId] = useState<string | null>(null);
+  
+  const navigate = (newView: View, courseId?: string) => {
+    setView(newView);
+    if (courseId !== undefined) {
+      setActiveCourseId(courseId);
     }
-  }, [user, initListeners]);
+  };
 
   return (
-    <Router>
-      <div className="min-h-screen bg-neutral-950 text-neutral-50 font-sans selection:bg-emerald-500/30">
-        <Routes>
-          <Route path="/login" element={!user ? <Login /> : <Navigate to={user.role === 'coach' ? '/coach' : '/athlete'} />} />
-          
-          <Route path="/coach/*" element={user?.role === 'coach' ? <CoachDashboard /> : <Navigate to="/login" />} />
-          <Route path="/athlete/*" element={user?.role === 'athlete' ? <AthleteDashboard /> : <Navigate to="/login" />} />
-          
-          <Route path="*" element={<Navigate to={user ? (user.role === 'coach' ? '/coach' : '/athlete') : '/login'} />} />
-        </Routes>
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-200">
+      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl relative flex flex-col">
+          {view === 'home' && <Home onNavigate={navigate} />}
+          {view === 'course' && <CourseDetail courseId={activeCourseId!} onNavigate={navigate} />}
+          {view === 'generator' && <GroupGenerator courseId={activeCourseId!} onNavigate={navigate} />}
       </div>
-    </Router>
+    </div>
   );
 }

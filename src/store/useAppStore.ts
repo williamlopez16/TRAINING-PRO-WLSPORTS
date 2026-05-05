@@ -1,125 +1,133 @@
 import { create } from 'zustand';
-import { User, Athlete, Exercise, Session, Challenge, Tournament } from '../types';
-import { db } from '../lib/firebase';
-import { collection, onSnapshot, query, where, addDoc, updateDoc, doc, setDoc } from 'firebase/firestore';
+import { persist } from 'zustand/middleware';
+import { Course, Student, GroupResult, Gender } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 interface AppState {
-  user: User | null;
-  athletes: Athlete[];
-  exercises: Exercise[];
-  sessions: Session[];
-  challenges: Challenge[];
-  tournaments: Tournament[];
+  courses: Course[];
+  histories: GroupResult[];
   
-  setUser: (user: User | null) => void;
-  initListeners: (uid: string, role: 'coach' | 'athlete') => () => void;
+  // Courses
+  addCourse: (name: string) => void;
+  updateCourseName: (id: string, name: string) => void;
+  deleteCourse: (id: string) => void;
+  duplicateCourse: (id: string) => void;
   
-  addAthlete: (athlete: Omit<Athlete, 'id' | 'createdAt'>) => Promise<void>;
-  addExercise: (exercise: Omit<Exercise, 'id' | 'createdAt'>) => Promise<void>;
-  addSession: (session: Omit<Session, 'id' | 'createdAt'>) => Promise<void>;
-  addChallenge: (challenge: Omit<Challenge, 'id' | 'createdAt'>) => Promise<void>;
-  addTournament: (tournament: Omit<Tournament, 'id' | 'createdAt'>) => Promise<void>;
-  updateTournament: (id: string, updates: Partial<Tournament>) => Promise<void>;
+  // Students
+  addStudent: (courseId: string, student: Omit<Student, 'id' | 'isActive'>) => void;
+  addMultipleStudents: (courseId: string, students: Omit<Student, 'id' | 'isActive'>[]) => void;
+  updateStudent: (courseId: string, studentId: string, updates: Partial<Student>) => void;
+  deleteStudent: (courseId: string, studentId: string) => void;
+  toggleStudentActive: (courseId: string, studentId: string) => void;
+  
+  // History
+  saveHistory: (history: GroupResult) => void;
+  deleteHistory: (historyId: string) => void;
 }
 
-// Initial mock data for testing (used only if Firebase is not configured)
-const mockExercises: Exercise[] = [
-  { id: '1', coachId: 'coach1', name: 'Pase corto', description: 'Pase a 5 metros con borde interno', type: 'Técnico', level: 'Principiante', durationOrReps: '10 min', createdAt: Date.now() },
-  { id: '2', coachId: 'coach1', name: 'Sprint 20m', description: 'Aceleración máxima', type: 'Físico', level: 'Intermedio', durationOrReps: '5 reps', createdAt: Date.now() },
-];
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      courses: [],
+      histories: [],
 
-const mockAthletes: Athlete[] = [
-  { id: 'a1', coachId: 'coach1', name: 'Juan Pérez', category: 'Sub 15', createdAt: Date.now() },
-  { id: 'a2', coachId: 'coach1', name: 'María Gómez', category: 'Sub 17', createdAt: Date.now() },
-];
+      addCourse: (name: string) => set((state) => ({
+        courses: [...state.courses, { id: uuidv4(), name, students: [], createdAt: Date.now() }]
+      })),
+      
+      updateCourseName: (id: string, name: string) => set((state) => ({
+        courses: state.courses.map(c => c.id === id ? { ...c, name } : c)
+      })),
 
-export const useAppStore = create<AppState>((set, get) => ({
-  user: null,
-  athletes: mockAthletes,
-  exercises: mockExercises,
-  sessions: [],
-  challenges: [
-    { id: 'c1', coachId: 'coach1', title: 'Dominadas Nivel 1', description: 'Haz 10 dominadas seguidas', level: 1, videoUrl: 'https://youtube.com/watch?v=123', createdAt: Date.now() }
-  ],
-  tournaments: [
-    { id: 't1', coachId: 'coach1', name: 'Liga Interna', status: 'active', players: [{ athleteId: 'a1', points: 3 }, { athleteId: 'a2', points: 1 }], matches: [], createdAt: Date.now() }
-  ],
+      deleteCourse: (id: string) => set((state) => ({
+        courses: state.courses.filter(c => c.id !== id),
+        histories: state.histories.filter(h => h.courseId !== id)
+      })),
 
-  setUser: (user) => set({ user }),
-  
-  initListeners: (uid, role) => {
-    if (!db) return () => {}; // Fallback to mock data if no DB
+      duplicateCourse: (id: string) => set((state) => {
+        const course = state.courses.find(c => c.id === id);
+        if (!course) return state;
+        const newCourse: Course = {
+          ...course,
+          id: uuidv4(),
+          name: `${course.name} (Copia)`,
+          createdAt: Date.now(),
+          students: course.students.map(s => ({ ...s, id: uuidv4() }))
+        };
+        return { courses: [...state.courses, newCourse] };
+      }),
 
-    const unsubs: (() => void)[] = [];
-    
-    // If coach, listen to their own data. If athlete, listen to their coach's data (simplified for now, athlete listens to all or specific coach)
-    // For this implementation, we'll query by coachId for coaches, and for athletes we'll just fetch everything for demo purposes (in production, athlete needs a coachId assigned)
-    const coachQuery = role === 'coach' ? where('coachId', '==', uid) : where('coachId', '!=', '');
+      addStudent: (courseId: string, student) => set((state) => ({
+        courses: state.courses.map(c => {
+          if (c.id === courseId) {
+            return {
+              ...c,
+              students: [...c.students, { ...student, id: uuidv4(), isActive: true }]
+            };
+          }
+          return c;
+        })
+      })),
 
-    unsubs.push(onSnapshot(query(collection(db, 'athletes'), coachQuery), (snap) => {
-      set({ athletes: snap.docs.map(d => ({ id: d.id, ...d.data() } as Athlete)) });
-    }));
-    
-    unsubs.push(onSnapshot(query(collection(db, 'exercises'), coachQuery), (snap) => {
-      set({ exercises: snap.docs.map(d => ({ id: d.id, ...d.data() } as Exercise)) });
-    }));
+      addMultipleStudents: (courseId: string, newStudents) => set((state) => ({
+        courses: state.courses.map(c => {
+          if (c.id === courseId) {
+            const added = newStudents.map(s => ({ ...s, id: uuidv4(), isActive: true }));
+            return {
+              ...c,
+              students: [...c.students, ...added]
+            };
+          }
+          return c;
+        })
+      })),
 
-    unsubs.push(onSnapshot(query(collection(db, 'challenges'), coachQuery), (snap) => {
-      set({ challenges: snap.docs.map(d => ({ id: d.id, ...d.data() } as Challenge)) });
-    }));
+      updateStudent: (courseId: string, studentId: string, updates: Partial<Student>) => set((state) => ({
+        courses: state.courses.map(c => {
+          if (c.id === courseId) {
+            return {
+              ...c,
+              students: c.students.map(s => s.id === studentId ? { ...s, ...updates } : s)
+            };
+          }
+          return c;
+        })
+      })),
 
-    unsubs.push(onSnapshot(query(collection(db, 'tournaments'), coachQuery), (snap) => {
-      set({ tournaments: snap.docs.map(d => ({ id: d.id, ...d.data() } as Tournament)) });
-    }));
+      deleteStudent: (courseId: string, studentId: string) => set((state) => ({
+        courses: state.courses.map(c => {
+          if (c.id === courseId) {
+            return {
+              ...c,
+              students: c.students.filter(s => s.id !== studentId)
+            };
+          }
+          return c;
+        })
+      })),
 
-    return () => unsubs.forEach(unsub => unsub());
-  },
-  
-  addAthlete: async (athlete) => {
-    if (db) {
-      await addDoc(collection(db, 'athletes'), { ...athlete, createdAt: Date.now() });
-    } else {
-      set((state) => ({ athletes: [...state.athletes, { ...athlete, id: Math.random().toString(36).substr(2, 9), createdAt: Date.now() }] }));
+      toggleStudentActive: (courseId: string, studentId: string) => set((state) => ({
+        courses: state.courses.map(c => {
+          if (c.id === courseId) {
+            return {
+              ...c,
+              students: c.students.map(s => s.id === studentId ? { ...s, isActive: !s.isActive } : s)
+            };
+          }
+          return c;
+        })
+      })),
+
+      saveHistory: (history: GroupResult) => set((state) => ({
+        histories: [history, ...state.histories]
+      })),
+      
+      deleteHistory: (historyId: string) => set((state) => ({
+        histories: state.histories.filter(h => h.id !== historyId)
+      }))
+    }),
+    {
+      name: 'edu-groups-storage',
     }
-  },
-  
-  addExercise: async (exercise) => {
-    if (db) {
-      await addDoc(collection(db, 'exercises'), { ...exercise, createdAt: Date.now() });
-    } else {
-      set((state) => ({ exercises: [...state.exercises, { ...exercise, id: Math.random().toString(36).substr(2, 9), createdAt: Date.now() }] }));
-    }
-  },
-
-  addSession: async (session) => {
-    if (db) {
-      await addDoc(collection(db, 'sessions'), { ...session, createdAt: Date.now() });
-    } else {
-      set((state) => ({ sessions: [...state.sessions, { ...session, id: Math.random().toString(36).substr(2, 9), createdAt: Date.now() }] }));
-    }
-  },
-
-  addChallenge: async (challenge) => {
-    if (db) {
-      await addDoc(collection(db, 'challenges'), { ...challenge, createdAt: Date.now() });
-    } else {
-      set((state) => ({ challenges: [...state.challenges, { ...challenge, id: Math.random().toString(36).substr(2, 9), createdAt: Date.now() }] }));
-    }
-  },
-
-  addTournament: async (tournament) => {
-    if (db) {
-      await addDoc(collection(db, 'tournaments'), { ...tournament, createdAt: Date.now() });
-    } else {
-      set((state) => ({ tournaments: [...state.tournaments, { ...tournament, id: Math.random().toString(36).substr(2, 9), createdAt: Date.now() }] }));
-    }
-  },
-
-  updateTournament: async (id, updates) => {
-    if (db) {
-      await updateDoc(doc(db, 'tournaments', id), updates);
-    } else {
-      set((state) => ({ tournaments: state.tournaments.map(t => t.id === id ? { ...t, ...updates } : t) }));
-    }
-  },
-}));
+  )
+);
