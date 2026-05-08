@@ -13,6 +13,7 @@ export function Home({ onNavigate }: HomeProps) {
   const [newCourseName, setNewCourseName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreate = (e: React.FormEvent) => {
@@ -94,6 +95,10 @@ export function Home({ onNavigate }: HomeProps) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const filteredCourses = courses.filter(course => 
+    course.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="flex-1 flex flex-col pt-8 pb-20 px-6">
       <header className="mb-8 flex justify-between items-start">
@@ -149,14 +154,31 @@ export function Home({ onNavigate }: HomeProps) {
         </button>
       </form>
 
+      {courses.length > 0 && (
+        <div className="mb-6 relative">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-slate-400" />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar curso..."
+            className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-5 py-3 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:bg-white transition-all font-medium text-slate-700"
+          />
+        </div>
+      )}
+
       <div className="flex-1 space-y-4">
-        {courses.length === 0 ? (
+        {filteredCourses.length === 0 ? (
           <div className="h-40 flex flex-col items-center justify-center text-slate-400">
             <Users className="w-12 h-12 mb-3 opacity-20" />
-            <p className="font-medium">No hay cursos creados aún.</p>
+            <p className="font-medium">
+              {searchQuery ? "No se encontraron cursos." : "No hay cursos creados aún."}
+            </p>
           </div>
         ) : (
-          courses.map(course => (
+          filteredCourses.map(course => (
             <div key={course.id} className="bg-white border border-slate-200 p-5 rounded-3xl shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 {editingId === course.id ? (

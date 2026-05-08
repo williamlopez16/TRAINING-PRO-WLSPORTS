@@ -5,11 +5,10 @@ import { View } from '../App';
 import { Gender, Student } from '../types';
 import Papa from 'papaparse';
 import * as pdfjsLib from 'pdfjs-dist';
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
-import { GoogleGenAI } from "@google/genai";
+import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker';
 
-// Cargar worker de pdfjs
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+const worker = new PdfWorker();
+pdfjsLib.GlobalWorkerOptions.workerPort = worker;
 
 interface CourseDetailProps {
   courseId: string;
@@ -81,95 +80,103 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
     return text;
   };
 
+  const extractTextFromExcel = async (file: File) => {
+    const arrayBuffer = await file.arrayBuffer();
+    const xlsx = await import('xlsx');
+    const workbook = xlsx.read(arrayBuffer, { type: 'array' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    return xlsx.utils.sheet_to_csv(sheet);
+  };
+
+  const extractTextFromWord = async (file: File) => {
+    const arrayBuffer = await file.arrayBuffer();
+    const mammoth = await import('mammoth');
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.type === 'application/pdf') {
-       try {
-         setIsProcessingAI(true);
-         const text = await extractTextFromPDF(file);
-         await processAIImport(text);
-       } catch (error) {
-         console.error('Error extracting PDF:', error);
-         alert('Error al leer el PDF. Probablemente esté escaneado como imagen.');
-       } finally {
+    try {
+      setIsProcessingAI(true);
+      let text = '';
+      const ext = file.name.split('.').pop()?.toLowerCase();
+
+      if (ext === 'pdf') {
+         text = await extractTextFromPDF(file);
+      } else if (ext === 'xlsx' || ext === 'xls') {
+         text = await extractTextFromExcel(file);
+      } else if (ext === 'docx') {
+         text = await extractTextFromWord(file);
+      } else if (ext === 'txt' || ext === 'csv') {
+         text = await file.text();
+      } else {
+         alert('Formato de archivo no soportado. Usa PDF, Word, Excel o Texto.');
          setIsProcessingAI(false);
-       }
-    } else if (file.type === 'text/csv' || file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
-       // text upload
-       const text = await file.text();
-       setImportText(text);
-    } else {
-       alert("Sube un archivo PDF o CSV.");
+         return;
+      }
+
+      await processAIImport(text);
+
+    } catch (error) {
+      console.error('Error handling file:', error);
+      alert('Error al leer el contenido del archivo.');
+    } finally {
+      setIsProcessingAI(false);
     }
     e.target.value = ''; // reset
   };
 
   const processAIImport = async (text: string) => {
     setIsProcessingAI(true);
-    let data;
     try {
-      try {
-      // Intento primario: Usar el backend (funciona en entorno de AI Studio / Express)
-      const res = await fetch('/api/parse-students', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-      if (!res.ok) {
-        throw new Error("Backend no disponible");
-      }
-      data = await res.json();
-    } catch (backendErr) {
-      // Fallback para sitios estáticos (Vercel) sin backend
-      try {
-        let apiKey = localStorage.getItem('user_gemini_api_key');
-        if (!apiKey) {
-          apiKey = window.prompt("Parece que la app está alojada estáticamente (P ej. Vercel) y no se pudo ejecutar el backend. Para usar la IA, por favor ingresa una API Key de Gemini válida:");
-          if (apiKey) {
-            localStorage.setItem('user_gemini_api_key', apiKey);
-          } else {
-            throw new Error("API key no encontrada. Configura GEMINI_API_KEY o provéela en el diálogo.");
+      let currentApiKey = localStorage.getItem('user_gemini_api_key') || undefined;
+      let retry = true;
+      let data = null;
+
+      while (retry) {
+        retry = false;
+        
+        const payload: any = { text };
+        if (currentApiKey && currentApiKey !== 'null' && currentApiKey !== 'undefined') {
+          payload.apiKey = currentApiKey;
+        }
+
+        const res = await fetch('/api/parse-students', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          let errJson = { error: 'Unknown server error', message: '' };
+          try { errJson = await res.json(); } catch(e) {}
+          
+          if (errJson.error === 'API_KEY_INVALID' || errJson.error === 'API_KEY_MISSING') {
+             localStorage.removeItem('user_gemini_api_key');
+             const newKey = window.prompt("Ingresa una API Key de Gemini válida para continuar (se guardará localmente):");
+             if (newKey) {
+                currentApiKey = newKey;
+                localStorage.setItem('user_gemini_api_key', currentApiKey);
+                retry = true;
+                continue;
+             } else {
+                throw new Error("Se requiere una API Key válida para la IA.");
+             }
           }
+          throw new Error(errJson.message || errJson.error);
         }
         
-        const ai = new GoogleGenAI({ apiKey });
-        const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
-          contents: `Extrae la lista de estudiantes de este texto basura/PDF, ignora cosas como encabezados, profesores o materias. Formatea un JSON.
-          De cada estudiante deduce si es hombre o mujer guiándote por el nombre (M = Masculino, F = Femenino, si no estás seguro al 100% o es ambiguo pon O).
-          Devuelve un JSON estrictamente con esta estructura:
-          {
-            "students": [
-              { "name": "Nombre completo Capitalizado", "gender": "M" | "F" | "O" }
-            ]
-          }
-          
-          Texto:
-          ${text}`,
-          config: {
-            responseMimeType: "application/json",
-            temperature: 0.2,
-          }
-        });
-  
-        if (!response.text) {
-          throw new Error("No se pudo generar una respuesta.");
-        }
-        data = JSON.parse(response.text);
-      } catch (clientErr: any) {
-        if (clientErr.message.includes("API key not valid") || clientErr.message.includes("API_KEY_INVALID")) {
-          localStorage.removeItem('user_gemini_api_key');
-        }
-        throw clientErr;
+        data = await res.json();
       }
-    }
-
-    if (data && data.students && Array.isArray(data.students)) {
+      
+      if (data && data.students && Array.isArray(data.students)) {
          setPreviewStudents(data.students.filter((s:any) => s.name));
       } else {
-         alert("No se pudo extraer la información del texto.");
+         throw new Error("El modelo no devolvió una lista válida de estudiantes.");
       }
     } catch (err: any) {
       alert("Hubo un error contactando a la Inteligencia Artificial.\nDetalles: " + err.message);
@@ -331,16 +338,16 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                      <Sparkles className="w-4 h-4" /> Importación Inteligente
                    </h4>
                    <p className="text-xs text-blue-800 font-medium leading-relaxed max-w-[85%] relative z-10">
-                     Sube un <span className="font-bold">PDF</span> o lista de texto. La IA extraerá los nombres y asignará el género automáticamente.
+                     Sube un <span className="font-bold">PDF, Word, Excel o Texto</span>. La IA extraerá los nombres y asignará el género automáticamente.
                    </p>
                    
                    <label className={`mt-4 relative z-10 flex items-center justify-center p-3 bg-white rounded-xl border border-blue-200 cursor-pointer font-bold text-sm text-blue-700 shadow-sm transition-all hover:bg-blue-100 ${isProcessingAI ? 'opacity-50 pointer-events-none' : 'active:scale-95 hover:border-blue-300'}`}>
                       {isProcessingAI ? (
-                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analizando PDF...</>
+                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analizando Archivo...</>
                       ) : (
-                         <><FileUp className="w-4 h-4 mr-2"/> Elegir PDF / CSV</>
+                         <><FileUp className="w-4 h-4 mr-2"/> Elegir Archivo</>
                       )}
-                      <input type="file" accept=".pdf,.txt,.csv" className="hidden" disabled={isProcessingAI} onChange={handleFileUpload} />
+                      <input type="file" accept=".pdf,.txt,.csv,.xlsx,.xls,.docx" className="hidden" disabled={isProcessingAI} onChange={handleFileUpload} />
                    </label>
                 </div>
                 

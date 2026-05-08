@@ -14,6 +14,13 @@ export interface Course {
   name: string;
   students: Student[];
   createdAt: number;
+  folderId?: string;
+}
+
+export interface Folder {
+  id: string;
+  name: string;
+  createdAt: number;
 }
 
 export interface GroupConfig {
