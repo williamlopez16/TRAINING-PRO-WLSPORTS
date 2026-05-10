@@ -279,7 +279,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
              </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3 pb-24 overflow-y-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pb-32 overflow-y-auto">
             {result.map((group, groupIdx) => (
               <div key={groupIdx} className={`bg-white border rounded-3xl p-3 shadow-sm flex flex-col ${isLocked ? 'border-slate-200' : 'border-slate-200'}`}>
                 <div className="text-xs font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2 mb-2 px-1">
@@ -310,7 +310,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
           </div>
 
           {/* Fab To Save Area */}
-          <div className="fixed bottom-6 left-0 right-0 max-w-md mx-auto px-6 z-20">
+          <div className="fixed bottom-6 left-0 right-0 max-w-md md:max-w-lg mx-auto px-6 z-20">
              <button onClick={save} className="w-full bg-slate-900 text-white p-5 rounded-3xl font-black text-lg flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-transform">
                <Save className="w-6 h-6" /> Guardar Distribución
              </button>

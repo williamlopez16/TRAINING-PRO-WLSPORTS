@@ -395,9 +395,9 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Estudiante</span>
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest pr-2">Presente</span>
               </div>
-              <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 {course.students.map((student, i) => (
-                  <div key={student.id} className={`flex items-center justify-between p-4 border-b border-slate-100 last:border-0 ${!student.isActive ? 'bg-slate-50' : 'bg-white'}`}>
+                  <div key={student.id} className={`flex items-center justify-between p-4 border border-slate-100 rounded-2xl ${!student.isActive ? 'bg-slate-50 opacity-60' : 'bg-white shadow-sm'}`}>
                     
                     <div className="flex items-center gap-3 overflow-hidden">
                       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${student.gender === 'M' ? 'bg-blue-100 text-blue-700' : student.gender === 'F' ? 'bg-pink-100 text-pink-700' : 'bg-slate-200 text-slate-600'}`}>
@@ -488,7 +488,7 @@ function HistoryView({ courseId }: { courseId: string }) {
   }
 
   return (
-    <div className="p-4 space-y-4 pb-24 overflow-y-auto bg-slate-50 flex-1">
+    <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-24 overflow-y-auto bg-slate-50 flex-1">
       {courseHistories.map(history => (
         <div key={history.id} className="bg-white rounded-3xl p-4 border border-slate-200 shadow-sm">
           <div className="flex justify-between items-start mb-3 border-b border-slate-100 pb-3">

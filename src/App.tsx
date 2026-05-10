@@ -18,7 +18,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-200">
-      <div className="max-w-md mx-auto min-h-screen bg-white shadow-xl relative flex flex-col">
+      <div className="w-full max-w-md md:max-w-none mx-auto min-h-screen bg-white shadow-xl relative flex flex-col">
           {view === 'home' && <Home onNavigate={navigate} />}
           {view === 'course' && <CourseDetail courseId={activeCourseId!} onNavigate={navigate} />}
           {view === 'generator' && <GroupGenerator courseId={activeCourseId!} onNavigate={navigate} />}

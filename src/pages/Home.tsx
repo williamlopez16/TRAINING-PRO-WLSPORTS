@@ -313,7 +313,7 @@ export function Home({ onNavigate }: HomeProps) {
               </div>
 
               {isExpanded && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 sm:pl-8 border-l-2 border-slate-100 ml-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-4 sm:pl-8 border-l-2 border-slate-100 ml-6">
                   {folderCourses.length === 0 ? (
                     <p className="text-slate-400 text-sm italic py-2">Carpeta vacía.</p>
                   ) : (
@@ -361,7 +361,7 @@ export function Home({ onNavigate }: HomeProps) {
           </div>
 
           {(expandedFolders['unassigned'] !== false) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 sm:pl-8 border-l-2 border-slate-100 ml-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-4 sm:pl-8 border-l-2 border-slate-100 ml-6">
               {(coursesByFolder['unassigned'] || []).length === 0 ? (
                 <div className="h-32 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-3xl col-span-full">
                   <Users className="w-8 h-8 mb-2 opacity-10" />
