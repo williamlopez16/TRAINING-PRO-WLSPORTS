@@ -1,18 +1,25 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Course, Student, GroupResult, Gender } from '../types';
+import { Course, Student, GroupResult, Gender, Folder } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import initialData from './initialData.json';
 
 interface AppState {
   courses: Course[];
   histories: GroupResult[];
+  folders: Folder[];
   
+  // Folders
+  addFolder: (name: string) => void;
+  updateFolderName: (id: string, name: string) => void;
+  deleteFolder: (id: string) => void;
+
   // Courses
-  addCourse: (name: string) => void;
+  addCourse: (name: string, folderId?: string) => void;
   updateCourseName: (id: string, name: string) => void;
   deleteCourse: (id: string) => void;
   duplicateCourse: (id: string) => void;
+  setCourseFolder: (courseId: string, folderId?: string) => void;
   
   // Students
   addStudent: (courseId: string, student: Omit<Student, 'id' | 'isActive'>) => void;
@@ -26,7 +33,7 @@ interface AppState {
   deleteHistory: (historyId: string) => void;
 
   // Import Data
-  importData: (courses: Course[], histories: GroupResult[]) => void;
+  importData: (courses: Course[], histories: GroupResult[], folders?: Folder[]) => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -34,9 +41,23 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       courses: initialData.courses as Course[] || [],
       histories: initialData.histories as GroupResult[] || [],
+      folders: [],
 
-      addCourse: (name: string) => set((state) => ({
-        courses: [...state.courses, { id: uuidv4(), name, students: [], createdAt: Date.now() }]
+      addFolder: (name: string) => set((state) => ({
+        folders: [...(state.folders || []), { id: uuidv4(), name, createdAt: Date.now() }]
+      })),
+
+      updateFolderName: (id: string, name: string) => set((state) => ({
+        folders: (state.folders || []).map(f => f.id === id ? { ...f, name } : f)
+      })),
+
+      deleteFolder: (id: string) => set((state) => ({
+        folders: (state.folders || []).filter(f => f.id !== id),
+        courses: state.courses.map(c => c.folderId === id ? { ...c, folderId: undefined } : c)
+      })),
+
+      addCourse: (name: string, folderId?: string) => set((state) => ({
+        courses: [...state.courses, { id: uuidv4(), name, students: [], createdAt: Date.now(), folderId }]
       })),
       
       updateCourseName: (id: string, name: string) => set((state) => ({
@@ -60,6 +81,10 @@ export const useAppStore = create<AppState>()(
         };
         return { courses: [...state.courses, newCourse] };
       }),
+
+      setCourseFolder: (courseId: string, folderId?: string) => set((state) => ({
+        courses: state.courses.map(c => c.id === courseId ? { ...c, folderId } : c)
+      })),
 
       addStudent: (courseId: string, student) => set((state) => ({
         courses: state.courses.map(c => {
@@ -130,7 +155,7 @@ export const useAppStore = create<AppState>()(
         histories: state.histories.filter(h => h.id !== historyId)
       })),
 
-      importData: (courses, histories) => set({ courses, histories })
+      importData: (courses, histories, folders) => set({ courses, histories, folders: folders || [] })
     }),
     {
       name: 'edu-groups-storage',

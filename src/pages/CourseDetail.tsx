@@ -16,8 +16,9 @@ interface CourseDetailProps {
 }
 
 export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
-  const { courses, addStudent, updateStudent, deleteStudent, toggleStudentActive, addMultipleStudents } = useAppStore();
+  const { courses, folders, addStudent, updateStudent, deleteStudent, toggleStudentActive, addMultipleStudents } = useAppStore();
   const course = courses.find(c => c.id === courseId);
+  const folder = folders?.find(f => f.id === course?.folderId);
   
   const [showImport, setShowImport] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -203,7 +204,10 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
           <ChevronLeft className="w-7 h-7" />
         </button>
         <div className="flex-1 px-4">
-          <h1 className="text-xl font-bold text-slate-900 truncate">{course.name}</h1>
+          <h1 className="text-xl font-bold text-slate-900 truncate flex items-center gap-2">
+            {course.name}
+            {folder && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{folder.name}</span>}
+          </h1>
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{activeCount} presentes / {course.students.length} total</p>
         </div>
         <button onClick={() => setNewMode(!newMode)} className="bg-slate-900 text-white p-2 rounded-xl transition-transform active:scale-95">
