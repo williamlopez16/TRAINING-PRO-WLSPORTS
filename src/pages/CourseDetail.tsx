@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { ChevronLeft, Plus, FileUp, Edit2, Check, User, Trash2, X, AlertCircle, History, Sparkles, Loader2 } from 'lucide-react';
+import { ChevronLeft, Plus, FileUp, Edit2, Check, User, Trash2, X, AlertCircle, History, Sparkles, Loader2, Shield, Star, Trophy } from 'lucide-react';
+import { cn } from '../lib/utils';
 import { View } from '../App';
 import { Gender, Student } from '../types';
 import Papa from 'papaparse';
@@ -20,6 +21,7 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
   const course = courses.find(c => c.id === courseId);
   const folder = folders?.find(f => f.id === course?.folderId);
   
+  const [isTeacherMode, setIsTeacherMode] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [importText, setImportText] = useState('');
@@ -210,9 +212,28 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
           </h1>
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{activeCount} presentes / {course.students.length} total</p>
         </div>
-        <button onClick={() => setNewMode(!newMode)} className="bg-slate-900 text-white p-2 rounded-xl transition-transform active:scale-95">
-          {newMode ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-        </button>
+        <div className="flex gap-2 items-center">
+          <button 
+            onClick={() => setIsTeacherMode(!isTeacherMode)} 
+            className={cn(
+              "p-2 rounded-xl transition-all active:scale-95",
+              isTeacherMode ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "bg-slate-100 text-slate-400 hover:text-slate-600"
+            )}
+            title="Modo Reservado (Distribución Forzada)"
+          >
+            <Shield className="w-5 h-5" />
+          </button>
+          <button 
+            onClick={() => onNavigate('tournament', courseId)} 
+            className="p-2 bg-amber-100 text-amber-600 rounded-xl hover:bg-amber-200 transition-colors"
+            title="Crear Torneo / Fixture"
+          >
+            <Trophy className="w-5 h-5" />
+          </button>
+          <button onClick={() => setNewMode(!newMode)} className="bg-slate-900 text-white p-2 rounded-xl transition-transform active:scale-95">
+            {newMode ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+          </button>
+        </div>
       </header>
 
       {/* Selector de Tabs Básido */}
@@ -397,11 +418,47 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 {course.students.map((student, i) => (
-                  <div key={student.id} className={`flex items-center justify-between p-4 border border-slate-100 rounded-2xl ${!student.isActive ? 'bg-slate-50 opacity-60' : 'bg-white shadow-sm'}`}>
+                  <div 
+                    key={student.id} 
+                    onClick={() => {
+                      if (isTeacherMode) {
+                        const current = student.reservedGroup || 0;
+                        const isLeader = student.leaderCandidate || false;
+                        
+                        // Ciclo: 0(None) -> 1 -> 2 -> 3 -> 4 -> 5(Leader) -> 0
+                        if (!isLeader && current < 4) {
+                          updateStudent(courseId, student.id, { reservedGroup: (current + 1) as any, leaderCandidate: false });
+                        } else if (!isLeader && current === 4) {
+                          updateStudent(courseId, student.id, { reservedGroup: 0, leaderCandidate: true });
+                        } else {
+                          updateStudent(courseId, student.id, { reservedGroup: 0, leaderCandidate: false });
+                        }
+                      }
+                    }}
+                    className={cn(
+                      "flex items-center justify-between p-4 border rounded-2xl transition-all cursor-default relative overflow-hidden",
+                      !student.isActive ? 'bg-slate-50 opacity-60' : 'bg-white shadow-sm',
+                      isTeacherMode && (student.reservedGroup || student.leaderCandidate) ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/30' : 'border-slate-100'
+                    )}
+                  >
+                    {isTeacherMode && student.leaderCandidate && (
+                      <div className="absolute top-0 right-0 p-1 bg-amber-500 text-white rounded-bl-lg">
+                        <Star className="w-3 h-3 fill-white" />
+                      </div>
+                    )}
                     
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${student.gender === 'M' ? 'bg-blue-100 text-blue-700' : student.gender === 'F' ? 'bg-pink-100 text-pink-700' : 'bg-slate-200 text-slate-600'}`}>
+                      <div className={`relative flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${student.gender === 'M' ? 'bg-blue-100 text-blue-700' : student.gender === 'F' ? 'bg-pink-100 text-pink-700' : 'bg-slate-200 text-slate-600'}`}>
                         {student.gender}
+                        {isTeacherMode && student.reservedGroup && student.reservedGroup > 0 && (
+                          <div className={cn(
+                            "absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-white animate-in zoom-in",
+                            student.reservedGroup === 1 && "bg-rose-500",
+                            student.reservedGroup === 2 && "bg-blue-500",
+                            student.reservedGroup === 3 && "bg-emerald-500",
+                            student.reservedGroup === 4 && "bg-amber-500"
+                          )} />
+                        )}
                       </div>
                       <div className="flex-1 truncate">
                         <div className={`font-semibold truncate ${!student.isActive ? 'text-slate-400 line-through decoration-slate-300' : 'text-slate-900'}`}>{student.name}</div>
@@ -427,7 +484,23 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                   </div>
                 ))}
               </div>
-              <div className="flex gap-2 p-2 mt-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-700 items-start">
+              {isTeacherMode && (
+            <div className="flex gap-2 p-3 mt-4 bg-blue-50 rounded-2xl border border-blue-200 text-blue-700 items-start animate-in fade-in slide-in-from-top-2">
+               <Shield className="w-5 h-5 flex-shrink-0 mt-0.5" />
+               <div className="text-xs font-medium space-y-1">
+                 <p><b>Modo Reservado:</b> Haz clic en los alumnos para asignarles un color. Los estudiantes del mismo color se intentarán separar en grupos diferentes.</p>
+                 <div className="flex flex-wrap gap-3 pt-1">
+                   <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500" /> Célula 1</span>
+                   <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500" /> Célula 2</span>
+                   <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500" /> Célula 3</span>
+                   <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-500" /> Célula 4</span>
+                   <span className="flex items-center gap-1 border-l pl-3 ml-1 border-blue-200"><Star className="w-3 h-3 text-amber-500 fill-amber-500" /> Capitán</span>
+                 </div>
+               </div>
+            </div>
+          )}
+          
+          <div className="flex gap-2 p-2 mt-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-700 items-start">
                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 opacity-60" />
                  <p className="text-xs font-medium">Apaga el interruptor verde para excluir temporalmente a estudiantes que estén ausentes o lesionados hoy. <b>No</b> se borrarán de la lista, pero no entrarán al sorteo.</p>
               </div>

@@ -7,6 +7,34 @@ export interface Student {
   listNumber?: string;
   notes?: string;
   isActive: boolean; // Controla si está excluido temporalmente
+  reservedGroup?: number; // 0=None, 1=Red, 2=Blue, 3=Green, 4=Yellow
+  leaderCandidate?: boolean; // Para "Anti-Capitanes"
+}
+
+export interface Match {
+  id: string;
+  teamA: string; // ID del Grupo o nombre
+  teamB: string;
+  scoreA?: number;
+  scoreB?: number;
+  winnerId?: string;
+  round?: number; // Para eliminatorias
+  status: 'pending' | 'finished';
+}
+
+export interface Tournament {
+  id: string;
+  courseId: string;
+  name: string;
+  type: 'round_robin' | 'elimination' | 'groups_playoffs';
+  teams: { id: string; name: string; memberIds: string[] }[];
+  matches: Match[];
+  createdAt: number;
+  config?: {
+    rounds: number;
+    groups?: number;
+    advancingCount?: number;
+  };
 }
 
 export interface Course {

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Course, Student, GroupResult, Gender, Folder } from '../types';
+import { Course, Student, GroupResult, Gender, Folder, Tournament, Match } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import initialData from './initialData.json';
 
@@ -8,6 +8,7 @@ interface AppState {
   courses: Course[];
   histories: GroupResult[];
   folders: Folder[];
+  tournaments: Tournament[];
   
   // Folders
   addFolder: (name: string) => void;
@@ -32,6 +33,11 @@ interface AppState {
   saveHistory: (history: GroupResult) => void;
   deleteHistory: (historyId: string) => void;
 
+  // Tournaments
+  addTournament: (tournament: Tournament) => void;
+  updateMatch: (tournamentId: string, matchId: string, updates: Partial<Match>) => void;
+  deleteTournament: (id: string) => void;
+
   // Import Data
   importData: (courses: Course[], histories: GroupResult[], folders?: Folder[]) => void;
 }
@@ -42,6 +48,7 @@ export const useAppStore = create<AppState>()(
       courses: initialData.courses as Course[] || [],
       histories: initialData.histories as GroupResult[] || [],
       folders: [],
+      tournaments: [],
 
       addFolder: (name: string) => set((state) => ({
         folders: [...(state.folders || []), { id: uuidv4(), name, createdAt: Date.now() }]
@@ -153,6 +160,26 @@ export const useAppStore = create<AppState>()(
       
       deleteHistory: (historyId: string) => set((state) => ({
         histories: state.histories.filter(h => h.id !== historyId)
+      })),
+
+      addTournament: (tournament: Tournament) => set((state) => ({
+        tournaments: [...state.tournaments, tournament]
+      })),
+
+      updateMatch: (tournamentId: string, matchId: string, updates: Partial<Match>) => set((state) => ({
+        tournaments: state.tournaments.map(t => {
+          if (t.id === tournamentId) {
+            return {
+              ...t,
+              matches: t.matches.map(m => m.id === matchId ? { ...m, ...updates } : m)
+            };
+          }
+          return t;
+        })
+      })),
+
+      deleteTournament: (id: string) => set((state) => ({
+        tournaments: state.tournaments.filter(t => t.id !== id)
       })),
 
       importData: (courses, histories, folders) => set({ courses, histories, folders: folders || [] })

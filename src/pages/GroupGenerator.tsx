@@ -1,20 +1,24 @@
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { ChevronLeft, RefreshCw, Save, Replace, Shield, Copy, AlertCircle, LayoutGrid, Users } from 'lucide-react';
+import { ChevronLeft, RefreshCw, Save, Replace, Shield, Copy, AlertCircle, LayoutGrid, Users, Lock, Unlock, Sparkles, Star, Trophy } from 'lucide-react';
 import { View } from '../App';
 import { Student, GroupConfig, GroupResult } from '../types';
+import { cn } from '../lib/utils';
 import { v4 as uuidv4 } from 'uuid';
 
 interface GroupGeneratorProps {
   courseId: string;
-  onNavigate: (view: View, courseId?: string) => void;
+  onNavigate: (view: View, courseId?: string, extra?: any) => void;
 }
 
 export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
-  const { courses, saveHistory } = useAppStore();
+  const { courses, saveHistory, histories } = useAppStore();
   const course = courses.find(c => c.id === courseId);
+  const courseHistories = useMemo(() => histories.filter(h => h.courseId === courseId).sort((a,b) => b.date - a.date), [histories, courseId]);
   const activeStudents = useMemo(() => course?.students.filter(s => s.isActive) || [], [course]);
+  const specialCount = useMemo(() => activeStudents.filter(s => s.reservedGroup && s.reservedGroup > 0).length, [activeStudents]);
 
+  const [isTeacherMode, setIsTeacherMode] = useState(false);
   const [config, setConfig] = useState<GroupConfig>({
     mode: 'random',
     type: 'by_count',
@@ -33,91 +37,204 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
     if (config.mode === 'men_only') pool = pool.filter(s => s.gender === 'M' || s.gender === 'H');
     if (config.mode === 'women_only') pool = pool.filter(s => s.gender === 'F');
 
-    // Shuffle pool
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [pool[i], pool[j]] = [pool[j], pool[i]];
-    }
-
+    // Separar por células (1-4), Líderes y pool regular
+    const leaderPool = pool.filter(s => s.leaderCandidate);
+    const cellPools = [
+      pool.filter(s => s.reservedGroup === 1 && !s.leaderCandidate),
+      pool.filter(s => s.reservedGroup === 2 && !s.leaderCandidate),
+      pool.filter(s => s.reservedGroup === 3 && !s.leaderCandidate),
+      pool.filter(s => s.reservedGroup === 4 && !s.leaderCandidate)
+    ];
+    const regularPool = pool.filter(s => !s.reservedGroup && !s.leaderCandidate);
+    
+    // Shuffle todos los pools
+    const shuffle = (array: any[]) => {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    };
+    shuffle(leaderPool);
+    cellPools.forEach(shuffle);
+    shuffle(regularPool);
+    
     let numGroups = config.value;
     if (config.type === 'by_size') {
       numGroups = Math.max(1, Math.ceil(pool.length / config.value));
     } else {
       numGroups = Math.max(1, parseInt(String(config.value)));
     }
+    
+    let groups: Student[][] = Array.from({ length: numGroups }, () => []);
+    
+    // CASO: Modos no separados por sexo
+    if (config.mode !== 'separated_gender') {
+      let gIdx = 0;
 
-    let groups: Student[][] = [];
+      // 1. Distribuir LÍDERES (Uno por grupo hasta agotar o llenar todos los grupos)
+      const leaderOffset = Math.floor(Math.random() * numGroups);
+      leaderPool.forEach((student, i) => {
+        groups[(leaderOffset + i) % numGroups].push(student);
+      });
+      
+      // 2. Distribuir CÉLULAS (Separación garantizada)
+      cellPools.forEach(cell => {
+        let offset = Math.floor(Math.random() * numGroups);
+        cell.forEach((student, i) => {
+          groups[(offset + i) % numGroups].push(student);
+        });
+      });
+      
+      // 3. Rellenar con pool regular
+      // Historial para penalización
+      const recentPairs = new Set<string>();
+      courseHistories.slice(0, 2).forEach(hist => {
+        hist.groups.forEach(group => {
+          for (let i = 0; i < group.length; i++) {
+            for (let j = i + 1; j < group.length; j++) {
+              recentPairs.add(`${group[i].id}-${group[j].id}`);
+              recentPairs.add(`${group[j].id}-${group[i].id}`);
+            }
+          }
+        });
+      });
 
-    if (config.mode === 'separated_gender') {
+      const getNormalizedGender = (gender: string) => {
+        const g = (gender || '').toUpperCase();
+        if (g === 'M' || g === 'H' || g === 'HOMBRE' || g === 'VARÓN') return 'M';
+        if (g === 'F' || g === 'MUJER') return 'F';
+        return 'O';
+      };
+
+      const findBestIdx = (student: Student, isBalancedMode: boolean) => {
+        let bestIdx = 0;
+        let minPenalty = Infinity;
+        let minSize = Infinity;
+        let minGenderCount = Infinity;
+        
+        const studentCategory = getNormalizedGender(student.gender);
+
+        // Mezclamos el orden de revisión de grupos
+        const groupIndices = Array.from({ length: numGroups }, (_, i) => i);
+        for (let i = groupIndices.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [groupIndices[i], groupIndices[j]] = [groupIndices[j], groupIndices[i]];
+        }
+
+        for (const idx of groupIndices) {
+          const g = groups[idx];
+          
+          // Contador de género para balance usando normalización
+          const genderCount = g.filter(m => getNormalizedGender(m.gender) === studentCategory).length;
+          
+          // Penalización por historial
+          let penalty = 0;
+          g.forEach(member => {
+            if (recentPairs.has(`${student.id}-${member.id}`)) penalty++;
+          });
+
+          if (isBalancedMode) {
+            // En modo balanceado: Prioridad absoluta al balance de género del pool actual
+            if (genderCount < minGenderCount || 
+               (genderCount === minGenderCount && g.length < minSize) ||
+               (genderCount === minGenderCount && g.length === minSize && penalty < minPenalty)) {
+              minGenderCount = genderCount;
+              minSize = g.length;
+              minPenalty = penalty;
+              bestIdx = idx;
+            }
+          } else {
+            // En modo normal: 1. Menos penalización, 2. Menor tamaño
+            if (penalty < minPenalty || (penalty === minPenalty && g.length < minSize)) {
+              minPenalty = penalty;
+              minSize = g.length;
+              bestIdx = idx;
+            }
+          }
+        }
+        return bestIdx;
+      };
+      
+      const isBalanced = config.mode === 'balanced_mixed' || config.mode === 'balanced_gender';
+      
+      if (isBalanced) {
+        const boys = regularPool.filter(s => getNormalizedGender(s.gender) === 'M');
+        const girls = regularPool.filter(s => getNormalizedGender(s.gender) === 'F');
+        const others = regularPool.filter(s => getNormalizedGender(s.gender) === 'O');
+        
+        const distribute = (arr: Student[]) => {
+          arr.forEach(s => {
+            const currentIdx = findBestIdx(s, true);
+            groups[currentIdx].push(s);
+          });
+        };
+        distribute(boys);
+        distribute(girls);
+        distribute(others);
+      } else {
+        regularPool.forEach(s => {
+          const currentIdx = findBestIdx(s, false);
+          groups[currentIdx].push(s);
+        });
+      }
+
+      // 3. CAMUFLAJE FINAL: Mezclar el orden INTERNO de cada grupo
+      // Esto evita que los especiales queden siempre "arriba" en la lista del grupo
+      groups.forEach(group => {
+        for (let i = group.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [group[i], group[j]] = [group[j], group[i]];
+        }
+      });
+    } else {
+      // CASO: Separados por sexo
       const boys = pool.filter(s => s.gender === 'M' || s.gender === 'H');
       const girls = pool.filter(s => s.gender === 'F');
       const others = pool.filter(s => s.gender !== 'M' && s.gender !== 'H' && s.gender !== 'F');
 
       if (config.type === 'by_size') {
         const s = config.value;
-        let bGroups = Math.ceil(boys.length / s);
-        let gGroups = Math.ceil(girls.length / s);
+        let bGroupsNum = Math.ceil(boys.length / s);
+        let gGroupsNum = Math.ceil(girls.length / s);
         
-        for (let i = 0; i < bGroups; i++) groups.push([]);
-        for (let i = 0; i < boys.length; i++) groups[i % bGroups].push(boys[i]);
+        groups = [];
+        for (let i = 0; i < bGroupsNum; i++) groups.push([]);
+        boys.forEach((student, i) => groups[i % bGroupsNum].push(student));
         
         const gOffset = groups.length;
-        for (let i = 0; i < gGroups; i++) groups.push([]);
-        for (let i = 0; i < girls.length; i++) groups[gOffset + (i % gGroups)].push(girls[i]);
+        for (let i = 0; i < gGroupsNum; i++) groups.push([]);
+        girls.forEach((student, i) => groups[gOffset + (i % gGroupsNum)].push(student));
         
         if (others.length > 0 && groups.length > 0) {
-          for (let i = 0; i < others.length; i++) groups[i % groups.length].push(others[i]);
+          others.forEach((student, i) => groups[i % groups.length].push(student));
         } else if (others.length > 0) {
           groups.push([...others]);
         }
       } else {
         const totalGroups = config.value;
         const bRatio = boys.length / (boys.length + girls.length || 1);
-        let bGroups = Math.round(totalGroups * bRatio);
-        let gGroups = totalGroups - bGroups;
+        let bGroupsNum = Math.round(totalGroups * bRatio);
+        let gGroupsNum = totalGroups - bGroupsNum;
 
-        if (bGroups === 0 && boys.length > 0 && totalGroups > 1) { bGroups = 1; gGroups = totalGroups - 1; }
-        if (gGroups === 0 && girls.length > 0 && totalGroups > 1) { gGroups = 1; bGroups = totalGroups - 1; }
+        if (bGroupsNum === 0 && boys.length > 0 && totalGroups > 1) { bGroupsNum = 1; gGroupsNum = totalGroups - 1; }
+        if (gGroupsNum === 0 && girls.length > 0 && totalGroups > 1) { gGroupsNum = 1; bGroupsNum = totalGroups - 1; }
 
-        for (let i = 0; i < bGroups; i++) groups.push([]);
-        if (bGroups > 0) {
-          for (let i = 0; i < boys.length; i++) groups[i % bGroups].push(boys[i]);
+        groups = [];
+        for (let i = 0; i < bGroupsNum; i++) groups.push([]);
+        if (bGroupsNum > 0) {
+          boys.forEach((student, i) => groups[i % bGroupsNum].push(student));
         }
 
         const gOffset = groups.length;
-        for (let i = 0; i < gGroups; i++) groups.push([]);
-        if (gGroups > 0) {
-          for (let i = 0; i < girls.length; i++) groups[gOffset + (i % gGroups)].push(girls[i]);
+        for (let i = 0; i < gGroupsNum; i++) groups.push([]);
+        if (gGroupsNum > 0) {
+          girls.forEach((student, i) => groups[gOffset + (i % gGroupsNum)].push(student));
         }
 
         if (others.length > 0 && groups.length > 0) {
-          for (let i = 0; i < others.length; i++) groups[i % groups.length].push(others[i]);
+          others.forEach((student, i) => groups[i % groups.length].push(student));
         } else if (others.length > 0) {
           groups.push([...others]);
-        }
-      }
-    } else {
-      groups = Array.from({ length: numGroups }, () => []);
-      if (config.mode === 'balanced_mixed' || config.mode === 'balanced_gender') {
-        const boys = pool.filter(s => s.gender === 'M' || s.gender === 'H');
-        const girls = pool.filter(s => s.gender === 'F');
-        const others = pool.filter(s => s.gender !== 'M' && s.gender !== 'H' && s.gender !== 'F');
-
-        let gIdx = 0;
-        const distribute = (arr: Student[]) => {
-          for (const s of arr) {
-            groups[gIdx].push(s);
-            gIdx = (gIdx + 1) % numGroups;
-          }
-        };
-
-        distribute(boys);
-        distribute(girls);
-        distribute(others);
-
-      } else {
-        for (let i = 0; i < pool.length; i++) {
-          groups[i % numGroups].push(pool[i]);
         }
       }
     }
@@ -171,7 +288,16 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
           <h1 className="text-xl font-bold text-slate-900 truncate">Generador</h1>
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{course.name}</p>
         </div>
-        <div className="w-10" />
+        <button 
+          onClick={() => setIsTeacherMode(!isTeacherMode)} 
+          className={cn(
+            "p-2 rounded-xl transition-all active:scale-95",
+            isTeacherMode ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "bg-slate-100 text-slate-400 hover:text-slate-600"
+          )}
+          title="Modo Reservado"
+        >
+          <Shield className="w-6 h-6" />
+        </button>
       </header>
 
       {!result ? (
@@ -213,11 +339,11 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                 <button 
                   onClick={() => setConfig({...config, mode: 'random'})}
                   className={`p-3 rounded-xl text-sm font-bold border transition-colors ${config.mode === 'random' ? 'bg-slate-800 border-slate-900 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                >100% Azar</button>
+                >Azar</button>
                 <button 
                   onClick={() => setConfig({...config, mode: 'balanced_mixed'})}
                   className={`p-3 rounded-xl text-sm font-bold border transition-colors ${config.mode === 'balanced_mixed' ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
-                >Mix Equitativo</button>
+                >Equitativo</button>
                 <button 
                   onClick={() => setConfig({...config, mode: 'men_only'})}
                   className={`p-3 rounded-xl text-sm font-bold border transition-colors ${config.mode === 'men_only' ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}
@@ -243,6 +369,22 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
             </p>
           </div>
 
+          {isTeacherMode && specialCount > 0 && (
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-3xl flex items-start gap-3 text-blue-700 animate-in fade-in slide-in-from-bottom-2">
+              <Sparkles className="w-6 h-6 flex-shrink-0 mt-0.5 opacity-60" />
+              <div className="text-sm font-medium leading-snug">
+                <p><b>Configuración Avanzada:</b> {specialCount} alumnos marcados serán repartidos equitativamente.</p>
+                <p className="mt-1 opacity-80 border-t border-blue-200 pt-1">Optimizando distribución según historial de clases anteriores.</p>
+                <div className="flex gap-3 pt-2 text-[10px] uppercase font-black opacity-70">
+                  <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-rose-500" /> C1</span>
+                  <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> C2</span>
+                  <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> C3</span>
+                  <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> C4</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <button 
             onClick={generate}
             className="w-full bg-slate-900 text-white rounded-3xl py-5 text-xl font-black shadow-lg shadow-slate-900/20 active:scale-95 transition-all"
@@ -266,9 +408,12 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
               <button 
                 onClick={() => setIsLocked(!isLocked)} 
                 title={isLocked ? "Desbloquear" : "Bloquear cambios"}
-                className={`p-3 rounded-2xl transition-all shadow-sm border active:scale-95 ${isLocked ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-white border-slate-200 text-slate-600'}`}
+                className={cn(
+                  "p-3 rounded-2xl transition-all shadow-sm border active:scale-95",
+                  isLocked ? "bg-emerald-500 text-white border-emerald-500" : "bg-white border-slate-200 text-slate-600"
+                )}
               >
-                <Shield className="w-5 h-5" />
+                {isLocked ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
               </button>
             </div>
           </div>
@@ -296,9 +441,18 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                            ${isSelected ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-50 text-slate-700 hover:bg-slate-100'}
                            ${isLocked ? 'pointer-events-none' : ''}`}
                        >
-                         <span className={`w-5 h-5 flex items-center justify-center rounded-md text-[10px] 
+                         <span className={`w-5 h-5 flex items-center justify-center rounded-md text-[10px] relative
                             ${isSelected ? 'bg-white/20' : student.gender === 'M' ? 'bg-blue-200/50 text-blue-700' : student.gender === 'F' ? 'bg-pink-200/50 text-pink-700' : 'bg-slate-200 text-slate-600'}`}>
                            {student.gender}
+                           {isTeacherMode && student.reservedGroup && student.reservedGroup > 0 && (
+                             <div className={cn(
+                               "absolute -top-1 -right-1 w-2 h-2 rounded-full border border-white animate-in zoom-in",
+                               student.reservedGroup === 1 && "bg-rose-500",
+                               student.reservedGroup === 2 && "bg-blue-500",
+                               student.reservedGroup === 3 && "bg-emerald-500",
+                               student.reservedGroup === 4 && "bg-amber-500"
+                             )} />
+                           )}
                          </span>
                          <span className="truncate">{student.name}</span>
                        </div>
@@ -310,10 +464,25 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
           </div>
 
           {/* Fab To Save Area */}
-          <div className="fixed bottom-6 left-0 right-0 max-w-md md:max-w-lg mx-auto px-6 z-20">
-             <button onClick={save} className="w-full bg-slate-900 text-white p-5 rounded-3xl font-black text-lg flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-transform">
-               <Save className="w-6 h-6" /> Guardar Distribución
-             </button>
+          <div className="fixed bottom-6 left-0 right-0 max-w-lg mx-auto px-6 z-20">
+             <div className="grid grid-cols-2 gap-3">
+               <button onClick={save} className="bg-slate-900 text-white p-5 rounded-3xl font-black text-base flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-transform">
+                 <Save className="w-5 h-5" /> Guardar
+               </button>
+               <button
+                 onClick={() => {
+                   if (!result) return;
+                   const teams = result.map((g, i) => ({
+                     name: `Equipo ${i + 1}`,
+                     memberIds: g.map(s => s.id)
+                   }));
+                   onNavigate('tournament', courseId, teams);
+                 }}
+                 className="bg-amber-500 text-white p-5 rounded-3xl font-black text-base flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-transform"
+               >
+                 <Trophy className="w-5 h-5 fill-white" /> Iniciar Torneo
+               </button>
+             </div>
           </div>
         </div>
       )}
