@@ -11,6 +11,7 @@ interface TournamentCreatorProps {
   onBack: () => void;
   setView: (view: View, courseId?: string, extra?: any) => void;
   initialTeams?: { name: string; memberIds: string[] }[];
+  onClearInitialTeams?: () => void;
 }
 
 const TEAM_NAMES = [
@@ -19,7 +20,7 @@ const TEAM_NAMES = [
   "Ciclones", "Relámpagos", "Truenos", "Delfines", "Tiburones"
 ];
 
-export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, onBack, setView, initialTeams }) => {
+export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, onBack, setView, initialTeams, onClearInitialTeams }) => {
   const { courses, tournaments, addTournament, deleteTournament, updateMatch } = useAppStore();
   const course = courses.find(c => c.id === courseId);
   const courseTournaments = tournaments.filter(t => t.courseId === courseId);
@@ -35,24 +36,30 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
   
   // Equipos temporales para edición
   const [tempTeams, setTempTeams] = useState<{ id: string; name: string; memberIds: string[] }[]>([]);
+  const initialTeamsLoadedRef = React.useRef(false);
 
   useEffect(() => {
-    if (activeTab === 'create' && tempTeams.length === 0) {
-      if (initialTeams && initialTeams.length > 0) {
-        setTempTeams(initialTeams.map(t => ({ id: uuidv4(), name: t.name, memberIds: t.memberIds })));
+    if (initialTeams && initialTeams.length > 0) {
+      if (!initialTeamsLoadedRef.current) {
+        initialTeamsLoadedRef.current = true;
+        setActiveTab('create');
+        setTempTeams(initialTeams.map(t => ({ id: uuidv4(), name: t.name, memberIds: t.memberIds || [] })));
         setTeamCount(initialTeams.length);
-      } else {
+      }
+    } else {
+      if (tempTeams.length === 0) {
         generateTempTeams(teamCount);
       }
     }
-  }, [activeTab, initialTeams, teamCount]);
+  }, [initialTeams]);
 
   const generateTempTeams = (count: number) => {
+    const validCount = Math.max(2, count);
     const activeStudents = course?.students.filter(s => s.isActive) || [];
     const shuffled = [...activeStudents].sort(() => Math.random() - 0.5);
     
     const newTeams: { id: string; name: string; memberIds: string[] }[] = [];
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < validCount; i++) {
        newTeams.push({
          id: uuidv4(),
          name: `${TEAM_NAMES[Math.floor(Math.random() * TEAM_NAMES.length)]} ${Math.floor(Math.random() * 99)}`,
@@ -60,10 +67,33 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
        });
     }
 
-    shuffled.forEach((s, i) => {
-      newTeams[i % count].memberIds.push(s.id);
-    });
+    if (newTeams.length > 0) {
+      shuffled.forEach((s, i) => {
+        const targetTeam = newTeams[i % newTeams.length];
+        if (targetTeam) targetTeam.memberIds.push(s.id);
+      });
+    }
     setTempTeams(newTeams);
+  };
+
+  const handleTeamCountChange = (count: number) => {
+    setTeamCount(count);
+    setTempTeams(prev => {
+      if (count > prev.length) {
+        const added: { id: string; name: string; memberIds: string[] }[] = [];
+        for (let i = prev.length; i < count; i++) {
+          added.push({
+            id: uuidv4(),
+            name: `${TEAM_NAMES[Math.floor(Math.random() * TEAM_NAMES.length)]} ${Math.floor(Math.random() * 99)}`,
+            memberIds: []
+          });
+        }
+        return [...prev, ...added];
+      } else if (count < prev.length) {
+        return prev.slice(0, count);
+      }
+      return prev;
+    });
   };
 
   if (!course) return null;
@@ -114,7 +144,11 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
     const topTeamsInput = leaderboard.slice(0, 4);
     if (topTeamsInput.length < 2) return;
 
-    const teams = topTeamsInput.map(t => currentTournament.teams.find(team => team.id === t.id)!);
+    const teams = topTeamsInput
+      .map(t => currentTournament.teams.find(team => team.id === t.id))
+      .filter((t): t is typeof currentTournament.teams[0] => Boolean(t));
+    if (teams.length < 2) return;
+
     const matches: Match[] = [];
 
     if (teams.length >= 4) {
@@ -221,7 +255,15 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
   };
 
   const handleCreate = () => {
-    const teams = [...tempTeams];
+    if (tempTeams.length < 2) {
+      alert("Se requieren al menos 2 equipos para iniciar el torneo.");
+      return;
+    }
+
+    const teams = tempTeams.map((t, idx) => ({
+      ...t,
+      name: t.name.trim() || `Equipo ${idx + 1}`
+    }));
     const matches: Match[] = [];
 
     if (type === 'round_robin') {
@@ -277,6 +319,11 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
       if (groupB.length > 0) generateGroupMatches(groupB);
     }
 
+    if (matches.length === 0) {
+      alert("No se pudieron generar partidos. Revisa que haya al menos 2 equipos disponibles.");
+      return;
+    }
+
     const newTournament: Tournament = {
       id: uuidv4(),
       courseId,
@@ -294,6 +341,8 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
     addTournament(newTournament);
     setName('');
     setTempTeams([]);
+    initialTeamsLoadedRef.current = false;
+    onClearInitialTeams?.();
     setActiveTab('list');
     setSelectedTournament(newTournament.id);
   };
@@ -362,31 +411,39 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
     if (selectedTournament === id) setSelectedTournament(null);
   };
 
-  const isCompleted = currentTournament?.matches.every(m => m.status === 'finished');
-  const showPlayoffButton = isCompleted && currentTournament?.type !== 'elimination' && currentTournament?.teams.length >= 2;
+  const isCompleted = Boolean(
+    currentTournament?.matches && 
+    currentTournament.matches.length > 0 && 
+    currentTournament.matches.every(m => m.status === 'finished')
+  );
+  const showPlayoffButton = Boolean(
+    isCompleted && 
+    currentTournament?.type !== 'elimination' && 
+    (currentTournament?.teams?.length || 0) >= 2
+  );
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
-      <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#0d111c] text-slate-100 pb-20">
+      <header className="sticky top-0 z-20 bg-[#0f1523]/95 backdrop-blur-md border-b border-slate-800 px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
-            <ChevronLeft className="w-6 h-6 text-slate-600" />
+          <button onClick={onBack} className="p-2 hover:bg-slate-800 rounded-xl transition-colors">
+            <ChevronLeft className="w-6 h-6 text-slate-400 hover:text-white" />
           </button>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Torneos EF</h1>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{course.name}</p>
+            <h1 className="text-xl font-bold text-white">Torneos EF</h1>
+            <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">{course.name}</p>
           </div>
         </div>
-        <Trophy className="w-6 h-6 text-amber-500" />
+        <Trophy className="w-6 h-6 text-amber-400" />
       </header>
 
       <div className="p-4 max-w-4xl mx-auto">
-        <div className="flex bg-white p-1 rounded-2xl shadow-sm border border-slate-200 mb-6">
+        <div className="flex bg-slate-900 p-1 rounded-2xl shadow-sm border border-slate-800 mb-6">
           <button 
             onClick={() => setActiveTab('list')}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all font-semibold text-sm",
-              activeTab === 'list' ? "bg-slate-900 text-white shadow-md" : "text-slate-500 hover:bg-slate-50"
+              activeTab === 'list' ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" : "text-slate-400 hover:text-white hover:bg-slate-800"
             )}
           >
             <Layout className="w-4 h-4" /> Mis Torneos
@@ -395,7 +452,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
             onClick={() => setActiveTab('create')}
             className={cn(
               "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all font-semibold text-sm",
-              activeTab === 'create' ? "bg-slate-900 text-white shadow-md" : "text-slate-500 hover:bg-slate-50"
+              activeTab === 'create' ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" : "text-slate-400 hover:text-white hover:bg-slate-800"
             )}
           >
             <Plus className="w-4 h-4" /> Nuevo Torneo
@@ -403,15 +460,15 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
         </div>
 
         {activeTab === 'create' ? (
-          <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-200 space-y-6">
+          <div className="bg-slate-900 rounded-[32px] p-6 shadow-md border border-slate-800 space-y-6">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Nombre del Torneo</label>
+              <label className="block text-sm font-bold text-slate-200 mb-2">Nombre del Torneo</label>
               <input 
                 type="text" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej. Copa Primavera 11A"
-                className="w-full bg-slate-50 border-none rounded-2xl px-5 py-4 text-slate-900 focus:ring-2 focus:ring-slate-900 transition-all"
+                className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-5 py-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 transition-all"
               />
             </div>
 
@@ -419,52 +476,52 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
               <button 
                 onClick={() => setType('round_robin')}
                 className={cn(
-                  "p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-1",
-                  type === 'round_robin' ? "border-slate-900 bg-slate-900 text-white" : "border-slate-100 bg-slate-50 text-slate-500"
+                  "p-3.5 rounded-2xl border transition-all flex flex-col items-center gap-1.5 min-h-[70px] justify-center",
+                  type === 'round_robin' ? "border-blue-500 bg-blue-600 text-white shadow-md shadow-blue-600/30" : "border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-750"
                 )}
               >
                 <Swords className="w-5 h-5" />
-                <span className="text-[10px] font-bold uppercase">Liga</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Liga</span>
               </button>
               <button 
                 onClick={() => setType('elimination')}
                 className={cn(
-                  "p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-1",
-                  type === 'elimination' ? "border-slate-900 bg-slate-900 text-white" : "border-slate-100 bg-slate-50 text-slate-500"
+                  "p-3.5 rounded-2xl border transition-all flex flex-col items-center gap-1.5 min-h-[70px] justify-center",
+                  type === 'elimination' ? "border-blue-500 bg-blue-600 text-white shadow-md shadow-blue-600/30" : "border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-750"
                 )}
               >
                 <Award className="w-5 h-5" />
-                <span className="text-[10px] font-bold uppercase">Eliminatoria</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Eliminatoria</span>
               </button>
               <button 
                 onClick={() => setType('groups_playoffs')}
                 className={cn(
-                  "p-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-1",
-                  type === 'groups_playoffs' ? "border-slate-900 bg-slate-900 text-white" : "border-slate-100 bg-slate-50 text-slate-500"
+                  "p-3.5 rounded-2xl border transition-all flex flex-col items-center gap-1.5 min-h-[70px] justify-center",
+                  type === 'groups_playoffs' ? "border-blue-500 bg-blue-600 text-white shadow-md shadow-blue-600/30" : "border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-750"
                 )}
               >
                 <TrendingUp className="w-5 h-5" />
-                <span className="text-[10px] font-bold uppercase">Grup + Playoff</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Grupos</span>
               </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Equipos: {teamCount}</label>
+                <label className="block text-xs font-black uppercase text-slate-300 mb-2">Equipos: {tempTeams.length > 0 ? tempTeams.length : teamCount}</label>
                 <div className="flex items-center gap-3">
                   <input 
                     type="range" 
                     min="2" 
                     max="16" 
-                    value={teamCount}
-                    onChange={(e) => setTeamCount(parseInt(e.target.value))}
-                    className="flex-1 accent-slate-900"
+                    value={tempTeams.length > 0 ? tempTeams.length : teamCount}
+                    onChange={(e) => handleTeamCountChange(parseInt(e.target.value))}
+                    className="flex-1 accent-blue-500 h-2 bg-slate-700 rounded-lg cursor-pointer"
                   />
                 </div>
               </div>
               
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-2">Vueltas (Ida/Vuelta): {rounds}</label>
+                <label className="block text-xs font-black uppercase text-slate-300 mb-2">Vueltas: {rounds}</label>
                 <div className="flex items-center gap-3">
                   <input 
                     type="range" 
@@ -472,7 +529,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                     max="4" 
                     value={rounds}
                     onChange={(e) => setRounds(parseInt(e.target.value))}
-                    className="flex-1 accent-blue-500"
+                    className="flex-1 accent-blue-500 h-2 bg-slate-700 rounded-lg cursor-pointer"
                     disabled={type === 'elimination'}
                   />
                 </div>
@@ -481,18 +538,18 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
 
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-bold text-slate-700">Equipos & Nombres</label>
+                <label className="block text-sm sm:text-base font-bold text-slate-200">Equipos & Nombres</label>
                 <button 
                   onClick={() => generateTempTeams(teamCount)}
-                  className="text-[10px] font-black uppercase text-blue-500 flex items-center gap-1"
+                  className="text-xs font-black uppercase text-blue-400 hover:text-blue-300 flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-blue-950/40"
                 >
-                  <Dice6 className="w-3 h-3" /> Nombres Aleatorios
+                  <Dice6 className="w-3.5 h-3.5" /> Nombres Aleatorios
                 </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1 pr-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-56 overflow-y-auto p-1 pr-2">
                 {tempTeams.map((team, idx) => (
-                  <div key={team.id} className="flex items-center gap-2 bg-slate-50 p-2 rounded-xl group border border-transparent focus-within:border-slate-200">
-                    <span className="text-[10px] font-black text-slate-400 w-4">{idx + 1}</span>
+                  <div key={team.id} className="flex items-center gap-2.5 bg-slate-800/80 p-2.5 rounded-xl group border border-slate-700/60 focus-within:border-blue-500 min-h-[48px]">
+                    <span className="text-xs font-black text-slate-400 w-5 text-center">{idx + 1}</span>
                     <input 
                       type="text" 
                       value={team.name}
@@ -501,7 +558,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                         newTeams[idx].name = e.target.value;
                         setTempTeams(newTeams);
                       }}
-                      className="flex-1 bg-transparent border-none p-0 text-sm font-bold text-slate-700 focus:ring-0"
+                      className="flex-1 bg-transparent border-none p-0 text-base font-bold text-slate-200 focus:ring-0 focus:text-white"
                     />
                   </div>
                 ))}
@@ -510,7 +567,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
 
             <button 
               onClick={handleCreate}
-              className="w-full bg-slate-900 text-white py-4 rounded-3xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 px-6 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2 shadow-xl shadow-blue-600/30 active:scale-95 transition-all min-h-[52px]"
             >
               <Play className="w-5 h-5 fill-white" /> {initialTeams ? 'Iniciar desde Grupos' : 'Generar Fixture'}
             </button>
@@ -518,12 +575,12 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
         ) : (
           <div className="space-y-4">
             {courseTournaments.length === 0 ? (
-               <div className="bg-white rounded-[32px] p-12 flex flex-col items-center text-center border-2 border-dashed border-slate-200">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                    <Trophy className="w-8 h-8 text-slate-400" />
+               <div className="bg-slate-900 rounded-[32px] p-12 flex flex-col items-center text-center border-2 border-dashed border-slate-800">
+                  <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                    <Trophy className="w-8 h-8 text-slate-500" />
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900">No hay torneos</h3>
-                  <p className="text-sm text-slate-500">Crea tu primer fixture de Educación Física.</p>
+                  <h3 className="text-lg font-bold text-white">No hay torneos</h3>
+                  <p className="text-sm text-slate-400">Crea tu primer fixture de Educación Física.</p>
                </div>
             ) : (
               courseTournaments.map(t => (
@@ -532,16 +589,16 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                     onClick={() => setSelectedTournament(t.id)}
                     className={cn(
                       "w-full text-left p-5 rounded-[28px] border transition-all flex items-center justify-between",
-                      selectedTournament === t.id ? "bg-slate-900 border-slate-900 text-white shadow-xl" : "bg-white border-slate-100 text-slate-900 shadow-sm"
+                      selectedTournament === t.id ? "bg-slate-800 border-blue-500 text-white shadow-xl shadow-blue-500/10" : "bg-slate-900 border-slate-800 text-slate-100 shadow-sm hover:border-slate-700"
                     )}
                   >
                     <div>
-                      <div className="font-bold">{t.name}</div>
-                      <div className={cn("text-[10px] font-black uppercase inline-block px-2 py-0.5 rounded-full mt-1", selectedTournament === t.id ? "bg-white/20" : "bg-slate-100 text-slate-500")}>
+                      <div className="font-bold text-white text-base sm:text-lg">{t.name}</div>
+                      <div className={cn("text-xs font-black uppercase inline-block px-3 py-1 rounded-full mt-1.5", selectedTournament === t.id ? "bg-blue-950 text-blue-300 border border-blue-800/60" : "bg-slate-800 text-slate-300")}>
                         {t.type === 'round_robin' ? 'Liga' : t.type === 'elimination' ? 'Eliminatoria' : 'Grupos + Playoff'} • {t.teams.length} Equipos
                       </div>
                     </div>
-                    <ChevronLeft className="w-5 h-5 rotate-180 opacity-40 group-hover:opacity-100 transition-opacity" />
+                    <ChevronLeft className="w-5 h-5 rotate-180 text-slate-400 group-hover:text-white transition-colors" />
                   </button>
                   <button 
                     onClick={(e) => {
@@ -557,8 +614,8 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                     }}
                     className={cn(
                       "absolute -top-2 -right-2 p-2 rounded-full shadow-lg border transition-all hover:scale-110 active:scale-90",
-                      deletingId === t.id ? "bg-rose-600 text-white border-rose-700 animate-pulse" : 
-                      selectedTournament === t.id ? "bg-rose-500 text-white border-rose-600" : "bg-white text-rose-500 border-slate-100"
+                      deletingId === t.id ? "bg-rose-600 text-white border-rose-500 animate-pulse" : 
+                      selectedTournament === t.id ? "bg-rose-600 text-white border-rose-500" : "bg-slate-800 text-rose-400 border-slate-700 hover:bg-slate-700"
                     )}
                   >
                     {deletingId === t.id ? <Check className="w-3.5 h-3.5" /> : <Trash2 className="w-3.5 h-3.5" />}
@@ -571,15 +628,15 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
 
         {selectedTournament && currentTournament && activeTab === 'list' && (
           <div className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4">
-            <div className="flex items-center justify-between border-b pb-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <div className="flex items-center gap-4">
-                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <h2 className="text-lg font-black text-white flex items-center gap-2">
                   <Swords className="w-5 h-5 text-rose-500" /> Encuentros
                 </h2>
                 {showPlayoffButton && (
                   <button 
                     onClick={generatePlayoffs}
-                    className="bg-amber-500 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase shadow-lg shadow-amber-500/20 animate-bounce flex items-center gap-2"
+                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 rounded-full text-[10px] font-black uppercase shadow-lg shadow-amber-500/20 animate-bounce flex items-center gap-2"
                   >
                     🚀 Iniciar Playoffs (Final y 3er Puesto)
                   </button>
@@ -589,7 +646,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                     onClick={() => setShowTable(!showTable)}
                     className={cn(
                       "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase transition-all",
-                      showTable ? "bg-amber-500 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                      showTable ? "bg-amber-500 text-slate-950 font-bold" : "bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700"
                     )}
                   >
                     <TrendingUp className="w-3.5 h-3.5" /> {showTable ? 'Ver Partidos' : 'Ver Tabla'}
@@ -607,8 +664,8 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                   }
                 }} 
                 className={cn(
-                  "p-2 rounded-xl transition-all flex items-center gap-2 font-bold text-xs",
-                  deletingId === selectedTournament ? "bg-rose-600 text-white" : "text-rose-500 hover:bg-rose-50"
+                  "p-2 rounded-xl transition-all flex items-center gap-2 font-bold text-xs border",
+                  deletingId === selectedTournament ? "bg-rose-600 border-rose-500 text-white" : "border-slate-800 text-rose-400 hover:bg-rose-950/40"
                 )}
               >
                 {deletingId === selectedTournament ? '¿Borrar?' : <Trash2 className="w-5 h-5" />}
@@ -616,10 +673,10 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
             </div>
 
             {showTable && currentTournament.type === 'round_robin' ? (
-              <div className="bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-100">
+              <div className="bg-slate-900 rounded-3xl overflow-hidden shadow-md border border-slate-800">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-100">
+                    <tr className="bg-slate-800/80 border-b border-slate-700">
                       <th className="px-4 py-3 text-[10px] font-black uppercase text-slate-400">Equipo</th>
                       <th className="px-2 py-3 text-[10px] font-black uppercase text-slate-400 text-center">PJ</th>
                       <th className="px-2 py-3 text-[10px] font-black uppercase text-slate-400 text-center">PTS</th>
@@ -628,18 +685,18 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                   </thead>
                   <tbody>
                     {leaderboard.map((team, idx) => (
-                      <tr key={team.id} className={cn("border-b border-slate-50 last:border-none", idx < 3 && "bg-amber-50/30")}>
+                      <tr key={team.id} className={cn("border-b border-slate-800 last:border-none", idx < 3 && "bg-amber-500/5")}>
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <span className={cn(
                               "w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold",
-                              idx === 0 ? "bg-amber-400 text-white" : "bg-slate-100 text-slate-400"
+                              idx === 0 ? "bg-amber-400 text-slate-950 font-black" : "bg-slate-800 text-slate-400 border border-slate-700"
                             )}>{idx + 1}</span>
-                            <span className="font-bold text-sm">{team.name}</span>
+                            <span className="font-bold text-sm text-white">{team.name}</span>
                           </div>
                         </td>
-                        <td className="px-2 py-4 text-center font-bold text-slate-500">{team.pj}</td>
-                        <td className="px-2 py-4 text-center font-black text-slate-900">{team.pts}</td>
+                        <td className="px-2 py-4 text-center font-bold text-slate-400">{team.pj}</td>
+                        <td className="px-2 py-4 text-center font-black text-white">{team.pts}</td>
                         <td className="px-2 py-4 text-center text-xs font-medium text-slate-400">{team.gf - team.gc}</td>
                       </tr>
                     ))}
@@ -652,37 +709,37 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                   const teamA = currentTournament.teams.find(t => t.id === m.teamA);
                   const teamB = currentTournament.teams.find(t => t.id === m.teamB);
                   return (
-                    <div key={m.id} className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+                    <div key={m.id} className="bg-slate-900 rounded-3xl p-5 shadow-md border border-slate-800">
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex-1 text-center">
-                          <div className="font-bold text-slate-900 text-sm mb-2">{teamA?.name}</div>
+                          <div className={`text-sm sm:text-base font-bold mb-2 truncate ${m.winnerId === teamA?.id ? 'text-amber-400' : 'text-white'}`}>{teamA?.name}</div>
                           <input 
                             type="number" 
                             placeholder="0"
                             value={m.scoreA ?? ''} 
                             onChange={(e) => updateScore(m.id, parseInt(e.target.value) || 0, m.scoreB || 0)}
-                            className="w-14 h-14 bg-slate-50 rounded-2xl text-center text-xl font-black focus:ring-2 focus:ring-slate-900 transition-all border-none"
+                            className="w-14 sm:w-16 h-14 sm:h-16 bg-slate-800 border border-slate-700 rounded-2xl text-center text-2xl font-black text-white placeholder-slate-600 focus:ring-2 focus:ring-blue-500 transition-all"
                           />
                         </div>
                         
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="text-[10px] font-black text-blue-500 uppercase">
+                        <div className="flex flex-col items-center gap-1.5">
+                          <div className="text-xs font-black text-blue-400 uppercase tracking-wider">
                             {m.round === 102 ? 'Final' : m.round === 103 ? '3er Puesto' : m.round === 101 ? 'Semi' : `#${idx + 1}`}
                           </div>
                           <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shadow-sm",
-                            m.round && m.round >= 101 ? "bg-amber-500" : "bg-slate-900"
+                            "w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shadow-sm",
+                            m.round && m.round >= 101 ? "bg-amber-500 text-slate-950 font-black" : "bg-slate-800 text-slate-300 border border-slate-700"
                           )}>VS</div>
                         </div>
 
                         <div className="flex-1 text-center">
-                          <div className="font-bold text-slate-900 text-sm mb-2">{teamB?.name}</div>
+                          <div className={`text-sm sm:text-base font-bold mb-2 truncate ${m.winnerId === teamB?.id ? 'text-amber-400' : 'text-white'}`}>{teamB?.name}</div>
                           <input 
                             type="number" 
                             placeholder="0"
                             value={m.scoreB ?? ''} 
                             onChange={(e) => updateScore(m.id, m.scoreA || 0, parseInt(e.target.value) || 0)}
-                            className="w-14 h-14 bg-slate-50 rounded-2xl text-center text-xl font-black focus:ring-2 focus:ring-slate-900 transition-all border-none"
+                            className="w-14 sm:w-16 h-14 sm:h-16 bg-slate-800 border border-slate-700 rounded-2xl text-center text-2xl font-black text-white placeholder-slate-600 focus:ring-2 focus:ring-blue-500 transition-all"
                           />
                         </div>
                       </div>
@@ -692,51 +749,51 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
               </div>
             )}
 
-            <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl">
+            <div className="bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 shadow-xl">
               <h3 className="text-lg font-black flex items-center gap-2 mb-4">
                 <Award className="w-6 h-6 text-amber-400" /> Podio EF
               </h3>
               <div className="space-y-3">
-                 <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl border border-white/10">
-                   <div className="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center text-slate-900 ring-4 ring-amber-400/20">
+                 <div className="flex items-center gap-4 bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60">
+                   <div className="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center text-slate-950 ring-4 ring-amber-400/20 font-black">
                      <Trophy className="w-5 h-5" />
                    </div>
                    <div className="flex-1">
-                     <div className="text-[10px] font-black uppercase text-amber-200">Oro</div>
-                     <div className="font-bold">
+                     <div className="text-[10px] font-black uppercase text-amber-400">Oro</div>
+                     <div className="font-bold text-white">
                        {currentTournament.matches.find(m => m.round === 102)?.winnerId 
                         ? currentTournament.teams.find(t => t.id === currentTournament.matches.find(m => m.round === 102)?.winnerId)?.name
                         : leaderboard[0]?.name || 'Por definir'}
                      </div>
                    </div>
                  </div>
-                 <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl border border-white/10 opacity-80">
-                   <div className="w-10 h-10 rounded-full bg-slate-300 flex items-center justify-center text-slate-900">
+                 <div className="flex items-center gap-4 bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 opacity-80">
+                   <div className="w-10 h-10 rounded-full bg-slate-400 flex items-center justify-center text-slate-950 font-black">
                      <Award className="w-5 h-5" />
                    </div>
                    <div className="flex-1">
-                     <div className="text-[10px] font-black uppercase text-slate-300">Plata</div>
-                     <div className="font-bold">
+                     <div className="text-[10px] font-black uppercase text-slate-400">Plata</div>
+                     <div className="font-bold text-white">
                        {currentTournament.matches.find(m => m.round === 102)?.status === 'finished'
                         ? currentTournament.teams.find(t => t.id === (currentTournament.matches.find(m => m.round === 102)?.teamA === currentTournament.matches.find(m => m.round === 102)?.winnerId ? currentTournament.matches.find(m => m.round === 102)?.teamB : currentTournament.matches.find(m => m.round === 102)?.teamA))?.name
                         : leaderboard[1]?.name || 'Por definir'}
                      </div>
                    </div>
                  </div>
-                 <div className="flex items-center gap-4 bg-white/10 p-4 rounded-2xl border border-white/10 opacity-60">
-                   <div className="w-10 h-10 rounded-full bg-amber-700/50 flex items-center justify-center text-amber-200">
+                 <div className="flex items-center gap-4 bg-slate-800/80 p-4 rounded-2xl border border-slate-700/60 opacity-70">
+                   <div className="w-10 h-10 rounded-full bg-amber-700/60 flex items-center justify-center text-amber-200">
                      <Star className="w-5 h-5" />
                    </div>
                    <div className="flex-1">
-                     <div className="text-[10px] font-black uppercase text-amber-600">Bronce</div>
-                     <div className="font-bold">
+                     <div className="text-[10px] font-black uppercase text-amber-500">Bronce</div>
+                     <div className="font-bold text-white">
                        {currentTournament.matches.find(m => m.round === 103)?.winnerId
                         ? currentTournament.teams.find(t => t.id === currentTournament.matches.find(m => m.round === 103)?.winnerId)?.name
                         : 'Por definir'}
                      </div>
                    </div>
                  </div>
-                 <p className="text-[10px] text-white/40 mt-4 italic">El Diploma Olímpico se entrega a los participantes destacados de cada grupo.</p>
+                 <p className="text-[10px] text-slate-400 mt-4 italic">El Diploma Olímpico se entrega a los participantes destacados de cada grupo.</p>
               </div>
             </div>
           </div>

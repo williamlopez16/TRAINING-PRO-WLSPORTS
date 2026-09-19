@@ -63,4 +63,5 @@ export interface GroupResult {
   date: number;
   config: GroupConfig;
   groups: Student[][];
+  groupNames?: string[];
 }

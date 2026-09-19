@@ -1,5 +1,6 @@
 {
   "name": "WLSPORTS Groups",
   "description": "Organizador Inteligente de Grupos para Educación Física. Simple, rápido y persistente.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

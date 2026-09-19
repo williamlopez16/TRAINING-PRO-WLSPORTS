@@ -1,15 +1,38 @@
 import express from "express";
 import { createServer as createViteServer } from "vite";
 import path from "path";
+import fs from "fs";
 import dotenv from "dotenv";
 
 dotenv.config();
+
+// Avoid tsx setting global __dirname to '.' which breaks vite-plugin-pwa resolution
+if (typeof (globalThis as any).__dirname !== 'undefined') {
+  delete (globalThis as any).__dirname;
+}
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
   app.use(express.json({ limit: "50mb" }));
+
+  // Direct APK download route for Android devices
+  app.get(["/api/download-apk", "/WLSPORTS-Groups.apk"], (req, res) => {
+    const candidates = [
+      path.join(process.cwd(), "public", "WLSPORTS-Groups.apk"),
+      path.join(process.cwd(), "dist", "WLSPORTS-Groups.apk"),
+      "/tmp/WLSPORTS-Groups.apk"
+    ];
+    for (const apkPath of candidates) {
+      if (fs.existsSync(apkPath)) {
+        res.setHeader("Content-Type", "application/vnd.android.package-archive");
+        res.setHeader("Content-Disposition", 'attachment; filename="WLSPORTS-Groups.apk"');
+        return res.sendFile(apkPath);
+      }
+    }
+    res.status(404).send("APK not found");
+  });
 
   app.post("/api/save-initial-data", async (req, res) => {
     try {

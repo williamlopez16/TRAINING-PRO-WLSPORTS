@@ -4,6 +4,8 @@ import { Plus, Users, Copy, Trash2, Edit2, Play, Search, Download, Upload, Folde
 import { cn } from '../lib/utils';
 import { View } from '../App';
 import { Folder as FolderType } from '../types';
+import { PWAInstallButton } from '../components/PWAInstallButton';
+import { InstallAppBanner } from '../components/InstallAppModal';
 
 interface HomeProps {
   onNavigate: (view: View, courseId?: string) => void;
@@ -153,24 +155,33 @@ export function Home({ onNavigate }: HomeProps) {
   });
 
   return (
-    <div className="flex-1 flex flex-col pt-8 pb-20 px-6">
+    <div className="flex-1 flex flex-col pt-8 pb-20 px-6 bg-[#0d111c]">
       <header className="mb-8 flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">WLSPORTS <span className="text-blue-600">Groups</span></h1>
-          <p className="text-slate-500 font-medium mt-1">Organizador Inteligente de Grupos</p>
+        <div className="flex items-center gap-3.5">
+          <img 
+            src="/logo.jpg" 
+            alt="WLSPORTS Logo" 
+            className="w-13 h-13 rounded-2xl object-cover shadow-xl border border-slate-700/80 ring-2 ring-blue-500/30"
+            referrerPolicy="no-referrer"
+          />
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">WLSPORTS <span className="text-blue-500">Groups</span></h1>
+            <p className="text-slate-400 font-medium text-xs sm:text-sm mt-0.5">Organizador Inteligente de Grupos</p>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <PWAInstallButton />
           <button 
             onClick={exportData}
             title="Exportar base de datos"
-            className="p-2 bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-200 transition-colors"
+            className="p-2.5 bg-slate-800/80 text-slate-300 hover:text-white rounded-xl hover:bg-slate-700 border border-slate-700/60 transition-colors"
           >
             <Download className="w-5 h-5" />
           </button>
           <button 
             onClick={() => fileInputRef.current?.click()}
             title="Importar base de datos"
-            className="p-2 bg-slate-100 text-slate-600 hover:text-slate-900 rounded-xl hover:bg-slate-200 transition-colors"
+            className="p-2.5 bg-slate-800/80 text-slate-300 hover:text-white rounded-xl hover:bg-slate-700 border border-slate-700/60 transition-colors"
           >
             <Upload className="w-5 h-5" />
           </button>
@@ -184,8 +195,10 @@ export function Home({ onNavigate }: HomeProps) {
         </div>
       </header>
 
-      <div className="mb-8 p-4 bg-blue-50/50 rounded-2xl border border-blue-100 text-center">
-        <p className="text-sm font-medium text-blue-800 italic">
+      <InstallAppBanner />
+
+      <div className="mb-8 p-4 bg-blue-950/40 rounded-2xl border border-blue-900/60 text-center">
+        <p className="text-sm font-medium text-blue-300 italic">
           "Cada nuevo grupo es una oportunidad para aprender a <br className="sm:hidden" />convivir, adaptarse y crecer."
         </p>
       </div>
@@ -197,23 +210,23 @@ export function Home({ onNavigate }: HomeProps) {
             value={newCourseName}
             onChange={(e) => setNewCourseName(e.target.value)}
             placeholder="Nuevo curso (ej. 10A)"
-            className="flex-1 bg-slate-100 border-none rounded-2xl px-5 py-3 focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all font-medium"
+            className="flex-1 bg-slate-900 border border-slate-800 text-white placeholder-slate-500 rounded-2xl px-5 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
           />
           <button 
             type="submit" 
             disabled={!newCourseName.trim()}
-            className="bg-blue-600 text-white p-3 rounded-2xl disabled:opacity-50 hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200"
+            className="bg-blue-600 text-white p-3 rounded-2xl disabled:opacity-40 hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/30"
           >
             <Plus className="w-6 h-6" />
           </button>
         </form>
         
-        <div className="h-10 w-px bg-slate-200 mx-1" />
+        <div className="h-10 w-px bg-slate-800 mx-1" />
 
         {!showFolderInput ? (
           <button 
             onClick={() => setShowFolderInput(true)}
-            className="p-3 bg-slate-100 text-slate-600 hover:text-blue-600 rounded-2xl hover:bg-slate-200 transition-all flex items-center gap-2 font-semibold px-4"
+            className="p-3 bg-slate-800/80 text-slate-300 hover:text-blue-400 border border-slate-700/60 rounded-2xl hover:bg-slate-700 transition-all flex items-center gap-2 font-semibold px-4"
           >
             <FolderPlus className="w-5 h-5" />
             <span className="hidden sm:inline">Nueva Carpeta</span>
@@ -227,11 +240,11 @@ export function Home({ onNavigate }: HomeProps) {
               onChange={(e) => setNewFolderName(e.target.value)}
               onBlur={() => !newFolderName.trim() && setShowFolderInput(false)}
               placeholder="Nombre carpeta"
-              className="w-40 bg-blue-50 border-blue-200 border rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all font-medium"
+              className="w-40 bg-slate-900 border-blue-500/80 border text-white placeholder-slate-500 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all font-medium"
             />
             <button 
-              type="submit"
-              className="bg-blue-600 text-white p-3 rounded-2xl hover:bg-blue-700 transition-colors"
+              type="submit" 
+              className="bg-blue-600 text-white p-3 rounded-2xl hover:bg-blue-500 transition-colors"
             >
               <Plus className="w-5 h-5" />
             </button>
@@ -242,14 +255,14 @@ export function Home({ onNavigate }: HomeProps) {
       {courses.length > 0 && (
         <div className="mb-8 relative">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-slate-400" />
+            <Search className="h-5 w-5 text-slate-500" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar curso por nombre..."
-            className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-5 py-3 focus:ring-2 focus:ring-blue-600 focus:border-blue-600 focus:bg-white transition-all font-medium text-slate-700 shadow-sm shadow-slate-100"
+            className="w-full bg-slate-900/90 border border-slate-800 text-white placeholder-slate-500 rounded-2xl pl-11 pr-5 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium shadow-sm"
           />
         </div>
       )}
@@ -263,14 +276,14 @@ export function Home({ onNavigate }: HomeProps) {
           return (
             <div key={folder.id} className="space-y-4">
               <div 
-                className="flex items-center justify-between p-2 rounded-xl group hover:bg-slate-50 cursor-pointer"
+                className="flex items-center justify-between p-2 rounded-xl group hover:bg-slate-800/60 cursor-pointer"
                 onClick={() => toggleFolder(folder.id)}
               >
                 <div className="flex items-center gap-3">
                   <div className="text-slate-400">
                     {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
                   </div>
-                  <div className="bg-blue-100 text-blue-600 p-2 rounded-xl">
+                  <div className="bg-blue-950/60 text-blue-400 p-2 rounded-xl border border-blue-800/40">
                     <FolderOpen className="w-5 h-5" />
                   </div>
                   {editingFolderId === folder.id ? (
@@ -281,10 +294,10 @@ export function Home({ onNavigate }: HomeProps) {
                       onBlur={() => saveEditFolder(folder.id)}
                       onKeyDown={(e) => e.key === 'Enter' && saveEditFolder(folder.id)}
                       onClick={(e) => e.stopPropagation()}
-                      className="font-bold text-lg bg-slate-100 px-3 py-1 rounded-lg"
+                      className="font-bold text-lg bg-slate-800 text-white border border-slate-700 px-3 py-1 rounded-lg"
                     />
                   ) : (
-                    <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
+                    <h3 className="font-bold text-slate-100 text-lg flex items-center gap-2">
                       {folder.name}
                       <span className="text-slate-400 text-sm font-medium">({folderCourses.length})</span>
                     </h3>
@@ -294,7 +307,7 @@ export function Home({ onNavigate }: HomeProps) {
                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={(e) => { e.stopPropagation(); startEditFolder(folder.id, folder.name); }}
-                    className="p-1.5 text-slate-400 hover:text-slate-900"
+                    className="p-1.5 text-slate-400 hover:text-white"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
@@ -304,8 +317,8 @@ export function Home({ onNavigate }: HomeProps) {
                       if(confirm(`¿Eliminar la carpeta "${folder.name}"? Los cursos pasarán a "Mis Cursos".`)) {
                         deleteFolder(folder.id);
                       }
-                    }}
-                    className="p-1.5 text-slate-400 hover:text-red-500"
+                    }} 
+                    className="p-1.5 text-slate-400 hover:text-red-400"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -313,7 +326,7 @@ export function Home({ onNavigate }: HomeProps) {
               </div>
 
               {isExpanded && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-4 sm:pl-8 border-l-2 border-slate-100 ml-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 pl-2.5 sm:pl-6 border-l-2 border-slate-800 ml-2 sm:ml-4">
                   {folderCourses.length === 0 ? (
                     <p className="text-slate-400 text-sm italic py-2">Carpeta vacía.</p>
                   ) : (
@@ -345,26 +358,26 @@ export function Home({ onNavigate }: HomeProps) {
         {/* Unassigned Courses */}
         <div className="space-y-4">
           <div 
-            className="flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-slate-50"
+            className="flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-slate-800/60"
             onClick={() => toggleFolder('unassigned')}
           >
             <div className="text-slate-400">
               {expandedFolders['unassigned'] !== false ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
             </div>
-            <div className="bg-slate-100 text-slate-600 p-2 rounded-xl">
+            <div className="bg-slate-800 text-slate-300 p-2 rounded-xl border border-slate-700/60">
               <LayoutGrid className="w-5 h-5" />
             </div>
-            <h3 className="font-bold text-slate-800 text-lg">
+            <h3 className="font-bold text-slate-100 text-lg">
               Mis Cursos
               <span className="text-slate-400 text-sm font-medium ml-2">({(coursesByFolder['unassigned'] || []).length})</span>
             </h3>
           </div>
 
           {(expandedFolders['unassigned'] !== false) && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pl-4 sm:pl-8 border-l-2 border-slate-100 ml-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 pl-2.5 sm:pl-6 border-l-2 border-slate-800 ml-2 sm:ml-4">
               {(coursesByFolder['unassigned'] || []).length === 0 ? (
-                <div className="h-32 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-100 rounded-3xl col-span-full">
-                  <Users className="w-8 h-8 mb-2 opacity-10" />
+                <div className="h-32 flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-800 rounded-3xl col-span-full">
+                  <Users className="w-8 h-8 mb-2 opacity-20" />
                   <p className="text-sm font-medium">No hay cursos sin asignar.</p>
                 </div>
               ) : (
@@ -400,7 +413,7 @@ function CourseCard({
   course, onNavigate, startEdit, editingId, editName, setEditName, saveEdit, duplicateCourse, deleteCourse, setCourseFolder, folders, showMoveMenu, setShowMoveMenu 
 }: any) {
   return (
-    <div className="bg-white border border-slate-200 p-4 rounded-3xl shadow-sm hover:shadow-md transition-shadow group">
+    <div className="bg-slate-900 border border-slate-800/90 p-4 sm:p-5 rounded-3xl shadow-md hover:shadow-xl hover:border-slate-700 transition-all group">
       <div className="flex items-center justify-between mb-4">
         <div className="flex-1 min-w-0">
           {editingId === course.id ? (
@@ -410,44 +423,44 @@ function CourseCard({
               onChange={(e) => setEditName(e.target.value)}
               onBlur={() => saveEdit(course.id)}
               onKeyDown={(e) => e.key === 'Enter' && saveEdit(course.id)}
-              className="font-bold text-lg bg-slate-100 px-3 py-1 rounded-lg w-full"
+              className="font-bold text-lg bg-slate-800 text-white border border-slate-700 px-3 py-1.5 rounded-xl w-full"
             />
           ) : (
-            <h2 className="text-lg font-bold text-slate-900 truncate" title={course.name}>
+            <h2 className="text-xl font-black text-slate-100 truncate tracking-tight" title={course.name}>
               {course.name}
             </h2>
           )}
         </div>
         
-        <div className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ml-2">
-          <Users className="w-3.5 h-3.5" /> {course.students.length}
+        <div className="bg-slate-800 text-slate-300 border border-slate-700/60 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ml-2 shrink-0">
+          <Users className="w-4 h-4 text-blue-400" /> {course.students.length}
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2.5">
         <button 
           onClick={() => onNavigate('course', course.id)}
-          className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-slate-800 transition-colors active:scale-[0.98]"
+          className="flex-1 bg-slate-800 text-slate-100 border border-slate-700/80 py-3 rounded-2xl text-sm font-bold hover:bg-slate-700 transition-colors active:scale-[0.98] min-h-[44px]"
         >
           Editar
         </button>
         <button 
           onClick={() => onNavigate('generator', course.id)}
           disabled={course.students.length === 0}
-          className="flex-[1.2] bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 disabled:opacity-40 disabled:bg-slate-300 hover:bg-blue-700 transition-all active:scale-[0.98]"
+          className="flex-[1.3] bg-blue-600 text-white py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-30 disabled:bg-slate-800 hover:bg-blue-500 transition-all shadow-md shadow-blue-600/20 active:scale-[0.98] min-h-[44px]"
         >
           <Play className="w-4 h-4 fill-white" />
           Grupos
         </button>
       </div>
 
-      <div className="flex justify-between items-center pt-3 mt-3 border-t border-slate-100">
-        <div className="flex gap-1">
-          <button onClick={() => startEdit(course.id, course.name)} className="p-1.5 text-slate-400 hover:text-slate-900">
-            <Edit2 className="w-3.5 h-3.5" />
+      <div className="flex justify-between items-center pt-3.5 mt-3.5 border-t border-slate-800/80">
+        <div className="flex gap-1.5">
+          <button onClick={() => startEdit(course.id, course.name)} className="p-2 text-slate-400 hover:text-slate-200 rounded-xl hover:bg-slate-800/60 min-w-[36px] min-h-[36px] flex items-center justify-center" title="Renombrar">
+            <Edit2 className="w-4 h-4" />
           </button>
-          <button onClick={() => duplicateCourse(course.id)} className="p-1.5 text-slate-400 hover:text-blue-600">
-            <Copy className="w-3.5 h-3.5" />
+          <button onClick={() => duplicateCourse(course.id)} className="p-2 text-slate-400 hover:text-blue-400 rounded-xl hover:bg-slate-800/60 min-w-[36px] min-h-[36px] flex items-center justify-center" title="Duplicar">
+            <Copy className="w-4 h-4" />
           </button>
           <button 
             onClick={() => {
@@ -455,28 +468,29 @@ function CourseCard({
                 deleteCourse(course.id);
               }
             }} 
-            className="p-1.5 text-slate-400 hover:text-red-600"
+            className="p-2 text-slate-400 hover:text-red-400 rounded-xl hover:bg-slate-800/60 min-w-[36px] min-h-[36px] flex items-center justify-center"
+            title="Eliminar"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-4 h-4" />
           </button>
         </div>
 
         <div className="relative">
           <button 
             onClick={() => setShowMoveMenu(showMoveMenu === course.id ? null : course.id)}
-            className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-blue-600 transition-colors p-1"
+            className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-blue-400 transition-colors p-2 rounded-xl hover:bg-slate-800/60 min-h-[36px]"
           >
-            Mover <MoreVertical className="w-3.5 h-3.5" />
+            Mover <MoreVertical className="w-4 h-4" />
           </button>
           
           {showMoveMenu === course.id && (
-            <div className="absolute right-0 bottom-full mb-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl z-10 py-2 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <p className="px-4 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-100 mb-1">Mover a...</p>
+            <div className="absolute right-0 bottom-full mb-2 w-48 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-10 py-2 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+              <p className="px-4 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-950/60 border-b border-slate-800 mb-1">Mover a...</p>
               <button 
                 onClick={() => { setCourseFolder(course.id, undefined); setShowMoveMenu(null); }}
                 className={cn(
-                  "w-full text-left px-4 py-2 text-sm hover:bg-slate-50 flex items-center gap-2",
-                  !course.folderId && "text-blue-600 font-semibold bg-blue-50/50"
+                  "w-full text-left px-4 py-2 text-sm hover:bg-slate-800 flex items-center gap-2 text-slate-200",
+                  !course.folderId && "text-blue-400 font-semibold bg-blue-950/40"
                 )}
               >
                 <LayoutGrid className="w-4 h-4" /> Mis Cursos
@@ -486,8 +500,8 @@ function CourseCard({
                   key={f.id}
                   onClick={() => { setCourseFolder(course.id, f.id); setShowMoveMenu(null); }}
                   className={cn(
-                    "w-full text-left px-4 py-2 text-sm hover:bg-slate-50 flex items-center gap-2",
-                    course.folderId === f.id && "text-blue-600 font-semibold bg-blue-50/50"
+                    "w-full text-left px-4 py-2 text-sm hover:bg-slate-800 flex items-center gap-2 text-slate-200",
+                    course.folderId === f.id && "text-blue-400 font-semibold bg-blue-950/40"
                   )}
                 >
                   <Folder className="w-4 h-4" /> {f.name}

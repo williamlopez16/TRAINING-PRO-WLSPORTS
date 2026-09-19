@@ -20,17 +20,18 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-blue-200">
-      <div className="w-full max-w-md md:max-w-none mx-auto min-h-screen bg-white shadow-xl relative flex flex-col">
+    <div className="w-full min-h-[100dvh] bg-[#0b0f19] text-slate-100 font-sans selection:bg-blue-500/30 selection:text-blue-200">
+      <div className="w-full max-w-2xl lg:max-w-4xl mx-auto min-h-[100dvh] bg-[#0d111c] relative flex flex-col shadow-2xl safe-bottom">
           {view === 'home' && <Home onNavigate={navigate} />}
           {view === 'course' && <CourseDetail courseId={activeCourseId!} onNavigate={navigate} />}
           {view === 'generator' && <GroupGenerator courseId={activeCourseId!} onNavigate={navigate} />}
           {view === 'tournament' && (
             <TournamentCreator 
               courseId={activeCourseId!} 
-              onBack={() => setView('course')} 
+              onBack={() => { setView('course'); setNavExtra(null); }} 
               setView={navigate} 
               initialTeams={navExtra}
+              onClearInitialTeams={() => setNavExtra(null)}
             />
           )}
       </div>

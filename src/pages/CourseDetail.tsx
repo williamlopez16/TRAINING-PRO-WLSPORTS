@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { ChevronLeft, Plus, FileUp, Edit2, Check, User, Trash2, X, AlertCircle, History, Sparkles, Loader2, Shield, Star, Trophy } from 'lucide-react';
+import { ChevronLeft, Plus, FileUp, Edit2, Check, User, Trash2, X, AlertCircle, History, Sparkles, Loader2, Shield, Star, Trophy, Users } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { View } from '../App';
 import { Gender, Student } from '../types';
@@ -200,24 +200,24 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
   const activeCount = course.students.filter(s => s.isActive).length;
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-50 min-h-screen">
-      <header className="bg-white px-4 py-4 flex items-center justify-between border-b border-slate-100 sticky top-0 z-10">
-        <button onClick={() => onNavigate('home')} className="p-2 -ml-2 text-slate-500 hover:text-slate-900 transition-colors">
+    <div className="flex-1 flex flex-col bg-[#0d111c] min-h-screen text-slate-100">
+      <header className="bg-[#0f1523]/95 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-800 sticky top-0 z-10">
+        <button onClick={() => onNavigate('home')} className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors">
           <ChevronLeft className="w-7 h-7" />
         </button>
         <div className="flex-1 px-4">
-          <h1 className="text-xl font-bold text-slate-900 truncate flex items-center gap-2">
+          <h1 className="text-xl font-bold text-white truncate flex items-center gap-2">
             {course.name}
-            {folder && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{folder.name}</span>}
+            {folder && <span className="text-[10px] bg-blue-950/60 border border-blue-800/40 text-blue-400 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{folder.name}</span>}
           </h1>
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{activeCount} presentes / {course.students.length} total</p>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{activeCount} presentes / {course.students.length} total</p>
         </div>
         <div className="flex gap-2 items-center">
           <button 
             onClick={() => setIsTeacherMode(!isTeacherMode)} 
             className={cn(
-              "p-2 rounded-xl transition-all active:scale-95",
-              isTeacherMode ? "bg-blue-600 text-white shadow-md shadow-blue-200" : "bg-slate-100 text-slate-400 hover:text-slate-600"
+              "p-2 rounded-xl transition-all active:scale-95 border",
+              isTeacherMode ? "bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/30" : "bg-slate-800/80 border-slate-700/60 text-slate-400 hover:text-slate-200"
             )}
             title="Modo Reservado (Distribución Forzada)"
           >
@@ -225,25 +225,25 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
           </button>
           <button 
             onClick={() => onNavigate('tournament', courseId)} 
-            className="p-2 bg-amber-100 text-amber-600 rounded-xl hover:bg-amber-200 transition-colors"
+            className="p-2 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl hover:bg-amber-500/30 transition-colors"
             title="Crear Torneo / Fixture"
           >
             <Trophy className="w-5 h-5" />
           </button>
-          <button onClick={() => setNewMode(!newMode)} className="bg-slate-900 text-white p-2 rounded-xl transition-transform active:scale-95">
+          <button onClick={() => setNewMode(!newMode)} className="bg-blue-600 text-white p-2 rounded-xl transition-transform active:scale-95 shadow-md shadow-blue-600/30">
             {newMode ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
           </button>
         </div>
       </header>
 
-      {/* Selector de Tabs Básido */}
-      <div className="flex bg-white border-b border-slate-200">
-         <button onClick={() => setShowHistory(false)} className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${!showHistory ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400'}`}>Estudiantes</button>
-         <button onClick={() => setShowHistory(true)} className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${showHistory ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-400'}`}><History className="w-4 h-4"/> Historial Grupos</button>
+      {/* Selector de Tabs Básico */}
+      <div className="flex bg-[#0f1523] border-b border-slate-800">
+         <button onClick={() => setShowHistory(false)} className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${!showHistory ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>Estudiantes</button>
+         <button onClick={() => setShowHistory(true)} className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${showHistory ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}><History className="w-4 h-4"/> Historial Grupos</button>
       </div>
 
       {!showHistory && newMode && (
-        <div className="bg-white p-4 border-b border-slate-200 shadow-sm">
+        <div className="bg-slate-900 p-4 border-b border-slate-800 shadow-sm">
           <form onSubmit={handleManualAdd} className="space-y-4">
             <input
               autoFocus
@@ -251,35 +251,35 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
               placeholder="Nombre del estudiante"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-100 border-none rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-slate-900"
+              className="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 py-3 font-medium focus:ring-2 focus:ring-blue-500"
             />
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setGender('M')}
-                className={`flex-1 py-3 rounded-xl font-semibold border ${gender === 'M' ? 'bg-blue-100 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-slate-500'}`}
+                className={`flex-1 py-3 rounded-xl font-semibold border ${gender === 'M' ? 'bg-blue-950/80 border-blue-500 text-blue-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}
               >
                 M
               </button>
               <button
                 type="button"
                 onClick={() => setGender('F')}
-                className={`flex-1 py-3 rounded-xl font-semibold border ${gender === 'F' ? 'bg-pink-100 border-pink-200 text-pink-700' : 'bg-white border-slate-200 text-slate-500'}`}
+                className={`flex-1 py-3 rounded-xl font-semibold border ${gender === 'F' ? 'bg-pink-950/80 border-pink-500 text-pink-400' : 'bg-slate-800 border-slate-700 text-slate-400'}`}
               >
                 F
               </button>
               <button
                 type="submit"
                 disabled={!name.trim()}
-                className="flex-[2] bg-slate-900 text-white py-3 rounded-xl font-bold disabled:opacity-50"
+                className="flex-[2] bg-blue-600 text-white py-3 rounded-xl font-bold disabled:opacity-40 hover:bg-blue-500 transition-colors shadow-md shadow-blue-600/30"
               >
                 Agregar
               </button>
             </div>
             
             <div className="pt-2">
-              <button type="button" onClick={() => {setShowImport(true); setNewMode(false);}} className="w-full py-3 text-sm font-semibold text-slate-500 border border-slate-200 rounded-xl flex justify-center items-center gap-2 hover:bg-slate-50 active:bg-slate-100">
-                <FileUp className="w-4 h-4" /> Importar Lista (Excel / Texto)
+              <button type="button" onClick={() => {setShowImport(true); setNewMode(false);}} className="w-full py-3 text-sm font-semibold text-slate-300 border border-slate-700 rounded-xl flex justify-center items-center gap-2 hover:bg-slate-800 active:bg-slate-700 transition-colors">
+                <FileUp className="w-4 h-4 text-blue-400" /> Importar Lista (Excel / Texto)
               </button>
             </div>
           </form>
@@ -288,22 +288,22 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
 
       {/* Import Modal */}
       {showImport && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm p-4 flex items-center justify-center">
-          <div className="bg-white rounded-3xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden max-h-[90vh]">
-            <div className="flex justify-between items-center p-4 border-b border-slate-100 flex-shrink-0">
-              <h3 className="font-bold text-slate-900">Importar Estudiantes</h3>
-              <button onClick={() => { setShowImport(false); setPreviewStudents([]); setImportText(''); }} className="p-2 text-slate-400 hover:text-slate-900 bg-slate-100 rounded-full transition-colors active:scale-95">
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm p-4 flex items-center justify-center">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm flex flex-col shadow-2xl overflow-hidden max-h-[90vh] text-slate-100">
+            <div className="flex justify-between items-center p-4 border-b border-slate-800 flex-shrink-0">
+              <h3 className="font-bold text-white">Importar Estudiantes</h3>
+              <button onClick={() => { setShowImport(false); setPreviewStudents([]); setImportText(''); }} className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors active:scale-95">
                 <X className="w-5 h-5" />
               </button>
             </div>
             
             {previewStudents.length > 0 ? (
-              <div className="flex-1 overflow-y-auto p-4 flex flex-col bg-slate-50">
-                <div className="text-sm font-medium text-slate-500 mb-3 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-500" />
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col bg-slate-950/50">
+                <div className="text-sm font-medium text-slate-400 mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
                   Revisa y corrige ({previewStudents.length} encontrados)
                 </div>
-                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden divide-y divide-slate-100">
+                <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden divide-y divide-slate-800">
                   {previewStudents.map((ps, idx) => (
                     <div key={idx} className="p-3 flex items-center gap-3">
                       <div className="flex-1">
@@ -315,7 +315,7 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                              nw[idx].name = e.target.value;
                              setPreviewStudents(nw);
                            }}
-                           className="w-full text-sm font-semibold outline-none text-slate-900 focus:text-blue-600 transition-colors"
+                           className="w-full text-sm font-semibold outline-none bg-transparent text-white focus:text-blue-400 transition-colors"
                         />
                       </div>
                       <select 
@@ -325,7 +325,7 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                              nw[idx].gender = e.target.value as Gender;
                              setPreviewStudents(nw);
                          }}
-                         className="text-xs font-bold bg-slate-100 border-none rounded-lg py-2 px-1 outline-none cursor-pointer focus:ring-2 focus:ring-slate-900"
+                         className="text-xs font-bold bg-slate-800 text-white border border-slate-700 rounded-lg py-2 px-1 outline-none cursor-pointer focus:ring-2 focus:ring-blue-500"
                       >
                          <option value="M">M</option>
                          <option value="F">F</option>
@@ -337,17 +337,17 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                           nw.splice(idx, 1);
                           setPreviewStudents(nw);
                         }}
-                        className="text-slate-300 hover:text-red-500 p-1 transition-colors"
+                        className="text-slate-500 hover:text-red-400 p-1 transition-colors"
                       >
                         <Trash2 className="w-4 h-4"/>
                       </button>
                     </div>
                   ))}
                 </div>
-                <div className="mt-4 sticky bottom-0 bg-slate-50 pt-2 pb-1">
+                <div className="mt-4 sticky bottom-0 bg-slate-950/90 pt-2 pb-1">
                   <button 
                     onClick={savePreview}
-                    className="w-full bg-slate-900 text-white rounded-xl py-4 font-bold active:scale-95 transition-transform shadow-xl shadow-slate-900/20"
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-4 font-bold active:scale-95 transition-transform shadow-xl shadow-blue-600/30"
                   >
                     Confirmar Importación
                   </button>
@@ -355,18 +355,18 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
               </div>
             ) : (
               <div className="p-4 space-y-4 overflow-y-auto">
-                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 relative overflow-hidden">
+                <div className="bg-blue-950/40 border border-blue-900/60 rounded-2xl p-4 relative overflow-hidden">
                    <div className="absolute -top-4 -right-4 p-3 opacity-10">
-                      <Sparkles className="w-24 h-24 text-blue-600" />
+                      <Sparkles className="w-24 h-24 text-blue-400" />
                    </div>
-                   <h4 className="font-black text-blue-900 mb-1 text-sm flex items-center gap-2 relative z-10">
+                   <h4 className="font-black text-blue-300 mb-1 text-sm flex items-center gap-2 relative z-10">
                      <Sparkles className="w-4 h-4" /> Importación Inteligente
                    </h4>
-                   <p className="text-xs text-blue-800 font-medium leading-relaxed max-w-[85%] relative z-10">
-                     Sube un <span className="font-bold">PDF, Word, Excel o Texto</span>. La IA extraerá los nombres y asignará el género automáticamente.
+                   <p className="text-xs text-blue-200 font-medium leading-relaxed max-w-[85%] relative z-10">
+                     Sube un <span className="font-bold text-white">PDF, Word, Excel o Texto</span>. La IA extraerá los nombres y asignará el género automáticamente.
                    </p>
                    
-                   <label className={`mt-4 relative z-10 flex items-center justify-center p-3 bg-white rounded-xl border border-blue-200 cursor-pointer font-bold text-sm text-blue-700 shadow-sm transition-all hover:bg-blue-100 ${isProcessingAI ? 'opacity-50 pointer-events-none' : 'active:scale-95 hover:border-blue-300'}`}>
+                   <label className={`mt-4 relative z-10 flex items-center justify-center p-3 bg-blue-900/60 rounded-xl border border-blue-700/80 cursor-pointer font-bold text-sm text-blue-200 shadow-sm transition-all hover:bg-blue-800 ${isProcessingAI ? 'opacity-50 pointer-events-none' : 'active:scale-95'}`}>
                       {isProcessingAI ? (
                          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analizando Archivo...</>
                       ) : (
@@ -377,21 +377,21 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                 </div>
                 
                 <div className="flex items-center gap-4 my-2">
-                  <div className="flex-1 h-px bg-slate-100"></div>
-                  <div className="text-center font-bold text-slate-300 text-[10px] uppercase tracking-widest">O pega el texto</div>
-                  <div className="flex-1 h-px bg-slate-100"></div>
+                  <div className="flex-1 h-px bg-slate-800"></div>
+                  <div className="text-center font-bold text-slate-500 text-[10px] uppercase tracking-widest">O pega el texto</div>
+                  <div className="flex-1 h-px bg-slate-800"></div>
                 </div>
 
                 <div className="space-y-3">
                   <textarea 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 h-32 text-sm outline-none focus:ring-2 focus:ring-slate-900 font-mono resize-none transition-all placeholder:text-slate-300"
+                    className="w-full bg-slate-950/60 border border-slate-800 rounded-2xl p-3 h-32 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500 font-mono resize-none transition-all placeholder:text-slate-600"
                     placeholder="Juan Perez, M&#10;Ana Gomez, F&#10;..."
                     value={importText}
                     onChange={e => setImportText(e.target.value)}
                   />
                   <button 
                     onClick={handleTextImport}
-                    className="w-full bg-slate-900 text-white rounded-xl py-3 font-bold active:scale-95 transition-transform"
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-3 font-bold active:scale-95 transition-all shadow-md shadow-blue-600/30"
                   >
                     Extraer de Texto
                   </button>
@@ -405,16 +405,16 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
       {!showHistory && (
         <div className="flex-1 p-4 pb-24 overflow-y-auto">
           {course.students.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400">
+            <div className="h-full flex flex-col items-center justify-center text-slate-500 py-12">
               <User className="w-12 h-12 mb-3 opacity-20" />
               <p className="font-medium">No hay estudiantes en la lista.</p>
-              <button onClick={() => setNewMode(true)} className="mt-4 text-slate-900 font-semibold unerline">Agregar Estudiantes</button>
+              <button onClick={() => setNewMode(true)} className="mt-4 text-blue-400 font-semibold underline">Agregar Estudiantes</button>
             </div>
           ) : (
             <div className="space-y-2">
-              <div className="px-1 pb-2 flex justify-between items-center bg-slate-50">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest pl-1">Estudiante</span>
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest pr-2">Presente</span>
+              <div className="px-1 pb-2 flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Estudiante</span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest pr-2">Presente</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 {course.students.map((student, i) => (
@@ -437,22 +437,22 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                     }}
                     className={cn(
                       "flex items-center justify-between p-4 border rounded-2xl transition-all cursor-default relative overflow-hidden",
-                      !student.isActive ? 'bg-slate-50 opacity-60' : 'bg-white shadow-sm',
-                      isTeacherMode && (student.reservedGroup || student.leaderCandidate) ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50/30' : 'border-slate-100'
+                      !student.isActive ? 'bg-slate-950/50 opacity-50 border-slate-800/50' : 'bg-slate-900 border-slate-800 shadow-sm hover:border-slate-700',
+                      isTeacherMode && (student.reservedGroup || student.leaderCandidate) ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-950/30' : ''
                     )}
                   >
                     {isTeacherMode && student.leaderCandidate && (
-                      <div className="absolute top-0 right-0 p-1 bg-amber-500 text-white rounded-bl-lg">
-                        <Star className="w-3 h-3 fill-white" />
+                      <div className="absolute top-0 right-0 p-1 bg-amber-500 text-slate-950 font-bold rounded-bl-lg">
+                        <Star className="w-3 h-3 fill-slate-950" />
                       </div>
                     )}
                     
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`relative flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${student.gender === 'M' ? 'bg-blue-100 text-blue-700' : student.gender === 'F' ? 'bg-pink-100 text-pink-700' : 'bg-slate-200 text-slate-600'}`}>
+                      <div className={`relative flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-black ${student.gender === 'M' ? 'bg-blue-950 text-blue-400 border border-blue-800/60' : student.gender === 'F' ? 'bg-pink-950 text-pink-400 border border-pink-800/60' : 'bg-slate-800 text-slate-300 border border-slate-700'}`}>
                         {student.gender}
                         {isTeacherMode && student.reservedGroup && student.reservedGroup > 0 && (
                           <div className={cn(
-                            "absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full border border-white animate-in zoom-in",
+                            "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border border-slate-900 animate-in zoom-in",
                             student.reservedGroup === 1 && "bg-rose-500",
                             student.reservedGroup === 2 && "bg-blue-500",
                             student.reservedGroup === 3 && "bg-emerald-500",
@@ -461,23 +461,23 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                         )}
                       </div>
                       <div className="flex-1 truncate">
-                        <div className={`font-semibold truncate ${!student.isActive ? 'text-slate-400 line-through decoration-slate-300' : 'text-slate-900'}`}>{student.name}</div>
+                        <div className={`text-base font-bold truncate ${!student.isActive ? 'text-slate-500 line-through decoration-slate-600' : 'text-slate-100'}`}>{student.name}</div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-4 flex-shrink-0 pl-2">
                       <button 
                         onClick={() => setStudentToDelete({ id: student.id, name: student.name })}
-                        className="p-2 -mr-2 text-slate-300 hover:text-red-500 transition-colors"
+                        className="p-2.5 -mr-1 text-slate-500 hover:text-red-400 transition-colors rounded-xl hover:bg-slate-800 min-w-[40px] min-h-[40px] flex items-center justify-center"
                         title="Eliminar estudiante"
                       >
                         <Trash2 className="w-5 h-5" />
                       </button>
                       <button 
                         onClick={() => toggleStudentActive(courseId, student.id)}
-                        className={`w-12 h-7 rounded-full transition-colors flex items-center relative box-border ${student.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                        className={`w-13 h-7 rounded-full transition-colors flex items-center relative box-border ${student.isActive ? 'bg-emerald-500' : 'bg-slate-800 border border-slate-700'}`}
                       >
-                        <span className={`w-5 h-5 bg-white rounded-full transition-all absolute shadow-sm ${student.isActive ? 'left-6' : 'left-1'}`} />
+                        <span className={`w-5 h-5 bg-white rounded-full transition-all absolute shadow-sm ${student.isActive ? 'left-7' : 'left-1'}`} />
                       </button>
                     </div>
 
@@ -485,43 +485,55 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                 ))}
               </div>
               {isTeacherMode && (
-            <div className="flex gap-2 p-3 mt-4 bg-blue-50 rounded-2xl border border-blue-200 text-blue-700 items-start animate-in fade-in slide-in-from-top-2">
-               <Shield className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <div className="flex gap-2 p-3 mt-4 bg-blue-950/40 rounded-2xl border border-blue-900/60 text-blue-300 items-start animate-in fade-in slide-in-from-top-2">
+               <Shield className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-400" />
                <div className="text-xs font-medium space-y-1">
-                 <p><b>Modo Reservado:</b> Haz clic en los alumnos para asignarles un color. Los estudiantes del mismo color se intentarán separar en grupos diferentes.</p>
+                 <p><b className="text-white">Modo Reservado:</b> Haz clic en los alumnos para asignarles un color. Los estudiantes del mismo color se intentarán separar en grupos diferentes.</p>
                  <div className="flex flex-wrap gap-3 pt-1">
                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500" /> Célula 1</span>
                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500" /> Célula 2</span>
                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500" /> Célula 3</span>
                    <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-500" /> Célula 4</span>
-                   <span className="flex items-center gap-1 border-l pl-3 ml-1 border-blue-200"><Star className="w-3 h-3 text-amber-500 fill-amber-500" /> Capitán</span>
+                   <span className="flex items-center gap-1 border-l pl-3 ml-1 border-blue-800"><Star className="w-3 h-3 text-amber-400 fill-amber-400" /> Capitán</span>
                  </div>
                </div>
             </div>
           )}
           
-          <div className="flex gap-2 p-2 mt-4 bg-amber-50 rounded-2xl border border-amber-200 text-amber-700 items-start">
-                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 opacity-60" />
-                 <p className="text-xs font-medium">Apaga el interruptor verde para excluir temporalmente a estudiantes que estén ausentes o lesionados hoy. <b>No</b> se borrarán de la lista, pero no entrarán al sorteo.</p>
-              </div>
-            </div>
-          )}
+          <div className="flex gap-2 p-3 mt-4 bg-amber-950/30 rounded-2xl border border-amber-900/60 text-amber-300 items-start">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-400" />
+            <p className="text-xs font-medium leading-relaxed">Apaga el interruptor verde para excluir temporalmente a estudiantes que estén ausentes o lesionados hoy. <b className="text-white">No</b> se borrarán de la lista, pero no entrarán al sorteo.</p>
+          </div>
+
+          {/* Botón flotante para generar grupos */}
+          <div className="sticky bottom-0 bg-gradient-to-t from-[#0d111c] via-[#0d111c]/95 to-transparent pt-4 pb-2 mt-4">
+            <button 
+              onClick={() => onNavigate('generator', courseId)}
+              disabled={activeCount === 0}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 px-6 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2.5 shadow-xl shadow-blue-600/30 active:scale-[0.98] transition-all disabled:opacity-30 disabled:bg-slate-800 min-h-[52px]"
+            >
+              <Users className="w-5 h-5" />
+              <span>Sorteo de Grupos ({activeCount} Presentes)</span>
+            </button>
+          </div>
+        </div>
+      )}
 
           {/* Dialogo de eliminación */}
           {studentToDelete && (
-            <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm p-4 flex items-center justify-center">
-              <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in-95">
-                <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+            <div className="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-sm p-4 flex items-center justify-center">
+              <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in-95 text-slate-100">
+                <div className="w-12 h-12 bg-red-950/60 border border-red-800/60 text-red-400 rounded-full flex items-center justify-center mb-4 mx-auto">
                   <Trash2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-center text-slate-900 mb-2">Eliminar estudiante</h3>
-                <p className="text-slate-500 text-center mb-6">
-                  ¿Estás seguro de que deseas eliminar a <span className="font-bold text-slate-700">{studentToDelete.name}</span>? Esta acción no se puede deshacer.
+                <h3 className="text-xl font-bold text-center text-white mb-2">Eliminar estudiante</h3>
+                <p className="text-slate-400 text-center mb-6 text-sm">
+                  ¿Estás seguro de que deseas eliminar a <span className="font-bold text-white">{studentToDelete.name}</span>? Esta acción no se puede deshacer.
                 </p>
                 <div className="flex gap-3">
                   <button 
                     onClick={() => setStudentToDelete(null)}
-                    className="flex-1 py-3 px-4 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                    className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors border border-slate-700"
                   >
                     Cancelar
                   </button>
@@ -530,7 +542,7 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                       deleteStudent(courseId, studentToDelete.id);
                       setStudentToDelete(null);
                     }}
-                    className="flex-1 py-3 px-4 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
+                    className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-colors shadow-lg shadow-red-600/30"
                   >
                     Eliminar
                   </button>
@@ -553,7 +565,7 @@ function HistoryView({ courseId }: { courseId: string }) {
 
   if (courseHistories.length === 0) {
     return (
-      <div className="flex-1 p-8 flex flex-col items-center justify-center text-slate-400 text-center">
+      <div className="flex-1 p-8 flex flex-col items-center justify-center text-slate-500 text-center">
         <History className="w-12 h-12 mb-3 opacity-20" />
         <p className="font-medium">No hay historial guardado para este curso.</p>
       </div>
@@ -561,15 +573,15 @@ function HistoryView({ courseId }: { courseId: string }) {
   }
 
   return (
-    <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-24 overflow-y-auto bg-slate-50 flex-1">
+    <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-24 overflow-y-auto bg-[#0d111c] flex-1">
       {courseHistories.map(history => (
-        <div key={history.id} className="bg-white rounded-3xl p-4 border border-slate-200 shadow-sm">
-          <div className="flex justify-between items-start mb-3 border-b border-slate-100 pb-3">
+        <div key={history.id} className="bg-slate-900 rounded-3xl p-4 border border-slate-800 shadow-md">
+          <div className="flex justify-between items-start mb-3 border-b border-slate-800 pb-3">
              <div>
-               <div className="font-bold text-slate-900">{new Date(history.date).toLocaleDateString()} {new Date(history.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
-               <div className="text-xs text-slate-500 uppercase mt-1 tracking-wider font-semibold">{history.groups.length} Grupos • Modo: {history.config.mode.replace('_', ' ')}</div>
+               <div className="font-bold text-white">{new Date(history.date).toLocaleDateString()} {new Date(history.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+               <div className="text-xs text-blue-400 uppercase mt-1 tracking-wider font-semibold">{history.groups.length} Grupos • Modo: {history.config.mode.replace('_', ' ')}</div>
              </div>
-             <button onClick={() => setHistoryToDelete(history.id)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
+             <button onClick={() => setHistoryToDelete(history.id)} className="p-2 text-slate-500 hover:text-red-400 transition-colors">
                <Trash2 className="w-4 h-4" />
              </button>
           </div>
@@ -577,10 +589,13 @@ function HistoryView({ courseId }: { courseId: string }) {
           <div className="space-y-3">
             {history.groups.map((g, i) => (
               <div key={i}>
-                <div className="text-xs font-bold text-slate-400 mb-1">Grupo {i + 1}</div>
+                <div className="text-xs font-bold text-slate-300 mb-1 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                  {history.groupNames?.[i] || `Grupo ${i + 1}`}
+                </div>
                 <div className="flex flex-wrap gap-1.5">
                   {g.map(s => (
-                    <span key={s.id} className="inline-block bg-slate-100 text-slate-700 text-xs px-2 py-1 rounded-lg font-medium">
+                    <span key={s.id} className="inline-block bg-slate-800 text-slate-200 border border-slate-700/60 text-xs px-2.5 py-1 rounded-lg font-medium">
                       {s.name}
                     </span>
                   ))}
@@ -593,19 +608,19 @@ function HistoryView({ courseId }: { courseId: string }) {
 
       {/* Dialogo de eliminación de historial */}
       {historyToDelete && (
-        <div className="fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-sm p-4 flex items-center justify-center">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in-95">
-            <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4 mx-auto">
+        <div className="fixed inset-0 z-[60] bg-slate-950/80 backdrop-blur-sm p-4 flex items-center justify-center">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in-95 text-slate-100">
+            <div className="w-12 h-12 bg-red-950/60 border border-red-800/60 text-red-400 rounded-full flex items-center justify-center mb-4 mx-auto">
                <Trash2 className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-center text-slate-900 mb-2">Eliminar registro</h3>
-            <p className="text-slate-500 text-center mb-6">
+            <h3 className="text-xl font-bold text-center text-white mb-2">Eliminar registro</h3>
+            <p className="text-slate-400 text-center mb-6 text-sm">
               ¿Estás seguro de que deseas eliminar este registro del historial? Esta acción no se puede deshacer.
             </p>
             <div className="flex gap-3">
                <button 
                  onClick={() => setHistoryToDelete(null)}
-                 className="flex-1 py-3 px-4 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                 className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-colors border border-slate-700"
                >
                  Cancelar
                </button>
@@ -614,7 +629,7 @@ function HistoryView({ courseId }: { courseId: string }) {
                    deleteHistory(historyToDelete);
                    setHistoryToDelete(null);
                  }}
-                 className="flex-1 py-3 px-4 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-lg shadow-red-600/20"
+                 className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-colors shadow-lg shadow-red-600/30"
                >
                  Eliminar
                </button>
