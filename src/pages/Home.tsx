@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Plus, Users, Copy, Trash2, Edit2, Play, Search, Download, Upload, FolderPlus, Folder, ChevronRight, ChevronDown, FolderOpen, MoreVertical, LayoutGrid } from 'lucide-react';
+import { Plus, Users, Copy, Trash2, Edit2, Play, Search, Download, Upload, FolderPlus, Folder, ChevronRight, ChevronDown, FolderOpen, MoreVertical, LayoutGrid, RotateCw } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { View } from '../App';
 import { Folder as FolderType } from '../types';
@@ -143,6 +143,26 @@ export function Home({ onNavigate }: HomeProps) {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const forceUpdateApp = async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          await reg.unregister();
+        }
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        for (const key of keys) {
+          await caches.delete(key);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    window.location.href = window.location.origin + '?t=' + Date.now();
+  };
+
   const filteredCourses = courses.filter(course => 
     course.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -171,6 +191,13 @@ export function Home({ onNavigate }: HomeProps) {
         </div>
         <div className="flex gap-2 items-center">
           <PWAInstallButton />
+          <button 
+            onClick={forceUpdateApp}
+            title="Recargar y actualizar versión limpia"
+            className="p-2.5 bg-slate-800/80 text-slate-300 hover:text-white rounded-xl hover:bg-slate-700 border border-slate-700/60 transition-colors"
+          >
+            <RotateCw className="w-5 h-5" />
+          </button>
           <button 
             onClick={exportData}
             title="Exportar base de datos"
@@ -485,7 +512,7 @@ function CourseCard({
           
           {showMoveMenu === course.id && (
             <div className="absolute right-0 bottom-full mb-2 w-48 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-10 py-2 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <p className="px-4 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-950/60 border-b border-slate-800 mb-1">Mover a...</p>
+              <p className="px-4 py-2 text-xs font-bold text-slate-300 uppercase tracking-widest bg-slate-950/60 border-b border-slate-800 mb-1">Mover a...</p>
               <button 
                 onClick={() => { setCourseFolder(course.id, undefined); setShowMoveMenu(null); }}
                 className={cn(

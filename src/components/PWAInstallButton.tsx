@@ -132,48 +132,48 @@ export function PWAInstallButton() {
             </div>
 
             {isIOS ? (
-              <div className="space-y-3 text-xs text-slate-700">
+              <div className="space-y-3 text-xs sm:text-sm text-slate-700">
                 <p className="font-semibold text-slate-900">En iPhone / iPad (Safari):</p>
                 <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">1</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
                   <p>Toca el botón <strong>Compartir</strong> <Share className="w-3.5 h-3.5 inline mx-1 text-blue-600" /> en la barra inferior de Safari.</p>
                 </div>
                 <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">2</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
                   <p>Desliza y selecciona <strong className="inline-flex items-center gap-1 font-bold text-slate-900"><PlusSquare className="w-3.5 h-3.5 text-slate-700" /> "Agregar a pantalla de inicio"</strong>.</p>
                 </div>
                 <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">3</span>
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
                   <p>Presiona <strong>"Agregar"</strong> y se guardará como App en tu iPhone.</p>
                 </div>
               </div>
             ) : (
               <div className="space-y-3.5">
                 <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl">
-                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs sm:text-sm">
                     <Check className="w-4 h-4 text-emerald-600" />
                     <span>Descarga del archivo APK iniciada</span>
                   </div>
-                  <p className="text-[11px] text-emerald-700 mt-1">
+                  <p className="text-xs text-emerald-700 mt-1">
                     Archivo: <strong>WLSPORTS-Groups.apk</strong> (~1 MB)
                   </p>
                 </div>
 
-                <div className="space-y-2 text-xs text-slate-700">
+                <div className="space-y-2 text-xs sm:text-sm text-slate-700">
                   <p className="font-bold text-slate-900">Pasos para completar la instalación:</p>
                   
                   <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">1</span>
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
                     <p>Baja la barra de notificaciones de tu teléfono o ve a la carpeta <strong>Descargas</strong>.</p>
                   </div>
 
                   <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">2</span>
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
                     <p>Toca <strong>WLSPORTS-Groups.apk</strong> y presiona <strong>Instalar</strong>.</p>
                   </div>
 
                   <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">3</span>
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
                     <p>¡Listo! La aplicación aparecerá en el <strong>cajón de aplicaciones</strong> con su icono oficial.</p>
                   </div>
                 </div>

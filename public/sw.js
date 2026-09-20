@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wlsports-v2';
+const CACHE_NAME = 'wlsports-v3-mobile';
 const ASSETS = [
   '/',
   '/index.html',
@@ -29,6 +29,26 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  // For HTML navigation requests, prioritize Network First so updates take effect immediately
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const cacheCopy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cacheCopy));
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request).then((cached) => cached || caches.match('/index.html'));
+        })
+    );
+    return;
+  }
+
+  // For static assets, stale-while-revalidate
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const networked = fetch(event.request)

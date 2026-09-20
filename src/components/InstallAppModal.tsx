@@ -111,7 +111,7 @@ export function InstallAppBanner() {
             <Check className="w-4 h-4" />
           </div>
           <div>
-            <p className="font-black uppercase tracking-wider text-[10px] text-emerald-900">Modo App Nativa</p>
+            <p className="font-black uppercase tracking-wider text-xs text-emerald-900">Modo App Nativa</p>
             <p className="text-emerald-700 font-medium">WLSPORTS está instalada y lista para usar sin conexión.</p>
           </div>
         </div>
@@ -132,10 +132,10 @@ export function InstallAppBanner() {
               <Smartphone className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/40 text-[10px] font-black uppercase tracking-wider text-blue-100 mb-1 border border-white/10">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/40 text-xs font-black uppercase tracking-wider text-blue-100 mb-1 border border-white/10">
                 📲 App Oficial para tu Celular
               </div>
-              <h3 className="text-base font-black text-white leading-snug">
+              <h3 className="text-base sm:text-lg font-black text-white leading-snug">
                 Descargar e Instalar WLSPORTS
               </h3>
               <p className="text-xs text-blue-100/90 font-medium mt-0.5">
@@ -295,14 +295,14 @@ function InstallGuideModal({ onClose, isIOS, isAndroid, isInIframe }: ModalProps
               <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</span>
               <span className="font-black text-white text-sm">Abrir en Google Chrome (Móvil)</span>
             </div>
-            <span className="text-[10px] font-bold uppercase px-2 py-0.5 bg-blue-900/60 text-blue-300 border border-blue-700/60 rounded-full">Recomendado</span>
+            <span className="text-xs font-bold uppercase px-2.5 py-1 bg-blue-900/60 text-blue-300 border border-blue-700/60 rounded-full">Recomendado</span>
           </div>
           <p className="text-xs text-slate-300">
             Si abriste el enlace desde WhatsApp u otra app, pulsa este botón para pasarte a Chrome y activar la instalación:
           </p>
           <button
             onClick={handleOpenInChromeAndroid}
-            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 transition-all active:scale-95"
+            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 transition-all active:scale-95 min-h-[44px]"
           >
             <ExternalLink className="w-4 h-4" /> Abrir en la App de Google Chrome
           </button>
@@ -310,7 +310,7 @@ function InstallGuideModal({ onClose, isIOS, isAndroid, isInIframe }: ModalProps
 
         {/* Action 2: Escanear con Cámara */}
         <div className="mb-4 p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center">
-          <p className="font-black text-white text-xs uppercase tracking-wider mb-2 flex items-center justify-center gap-1.5">
+          <p className="font-black text-white text-xs sm:text-sm uppercase tracking-wider mb-2 flex items-center justify-center gap-1.5">
             <Smartphone className="w-4 h-4 text-blue-400" />
             O Escanea con la cámara de tu celular
           </p>
@@ -322,27 +322,27 @@ function InstallGuideModal({ onClose, isIOS, isAndroid, isInIframe }: ModalProps
               loading="eager"
             />
           </div>
-          <p className="text-[11px] text-slate-400 font-medium mt-1.5">
+          <p className="text-xs text-slate-400 font-medium mt-1.5">
             Apunta la cámara de tu móvil para abrir directamente.
           </p>
         </div>
 
         {/* Action 3: Opciones adicionales (APK / Bundle) */}
         <div className="space-y-2.5 mb-4">
-          <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">Otras formas de descarga:</p>
+          <p className="text-xs font-black uppercase tracking-wider text-slate-300">Otras formas de descarga:</p>
           
           <div className="p-3 bg-slate-900 hover:bg-slate-850 rounded-2xl border border-slate-800 flex items-center justify-between gap-2 transition-colors">
             <div className="flex items-center gap-2.5">
               <Package className="w-5 h-5 text-indigo-400 flex-shrink-0" />
               <div className="text-left">
-                <p className="text-xs font-bold text-white">Descargar APK para Android (Nativo)</p>
-                <p className="text-[11px] text-slate-400">Paquete .apk firmado (se instala en el cajón de apps)</p>
+                <p className="text-xs sm:text-sm font-bold text-white">Descargar APK para Android (Nativo)</p>
+                <p className="text-xs text-slate-400">Paquete .apk firmado (se instala en el cajón de apps)</p>
               </div>
             </div>
             <a
               href="/WLSPORTS-Groups.apk"
               download="WLSPORTS-Groups.apk"
-              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors flex-shrink-0"
+              className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors flex-shrink-0 min-h-[36px]"
             >
               <Download className="w-3.5 h-3.5" /> Descargar APK
             </a>
@@ -352,13 +352,13 @@ function InstallGuideModal({ onClose, isIOS, isAndroid, isInIframe }: ModalProps
             <div className="flex items-center gap-2.5">
               <Download className="w-5 h-5 text-emerald-400 flex-shrink-0" />
               <div className="text-left">
-                <p className="text-xs font-bold text-white">Descargar Archivo Web Offline</p>
-                <p className="text-[11px] text-slate-400">Guarda el lanzador en tu móvil para usarlo sin internet</p>
+                <p className="text-xs sm:text-sm font-bold text-white">Descargar Archivo Web Offline</p>
+                <p className="text-xs text-slate-400">Guarda el lanzador en tu móvil para usarlo sin internet</p>
               </div>
             </div>
             <button
               onClick={handleDownloadAppBundle}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors flex-shrink-0"
+              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors flex-shrink-0 min-h-[36px]"
             >
               Descargar <Download className="w-3 h-3" />
             </button>

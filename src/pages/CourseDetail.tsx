@@ -208,7 +208,7 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
         <div className="flex-1 px-4">
           <h1 className="text-xl font-bold text-white truncate flex items-center gap-2">
             {course.name}
-            {folder && <span className="text-[10px] bg-blue-950/60 border border-blue-800/40 text-blue-400 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">{folder.name}</span>}
+            {folder && <span className="text-xs bg-blue-950/60 border border-blue-800/40 text-blue-400 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider">{folder.name}</span>}
           </h1>
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{activeCount} presentes / {course.students.length} total</p>
         </div>
@@ -378,7 +378,7 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                 
                 <div className="flex items-center gap-4 my-2">
                   <div className="flex-1 h-px bg-slate-800"></div>
-                  <div className="text-center font-bold text-slate-500 text-[10px] uppercase tracking-widest">O pega el texto</div>
+                  <div className="text-center font-bold text-slate-400 text-xs uppercase tracking-widest">O pega el texto</div>
                   <div className="flex-1 h-px bg-slate-800"></div>
                 </div>
 

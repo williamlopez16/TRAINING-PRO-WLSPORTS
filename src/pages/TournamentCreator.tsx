@@ -636,7 +636,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                 {showPlayoffButton && (
                   <button 
                     onClick={generatePlayoffs}
-                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 rounded-full text-[10px] font-black uppercase shadow-lg shadow-amber-500/20 animate-bounce flex items-center gap-2"
+                    className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2.5 rounded-full text-xs font-black uppercase shadow-lg shadow-amber-500/20 animate-bounce flex items-center gap-2"
                   >
                     🚀 Iniciar Playoffs (Final y 3er Puesto)
                   </button>
@@ -645,11 +645,11 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                   <button 
                     onClick={() => setShowTable(!showTable)}
                     className={cn(
-                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase transition-all",
+                      "flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-black uppercase transition-all",
                       showTable ? "bg-amber-500 text-slate-950 font-bold" : "bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700"
                     )}
                   >
-                    <TrendingUp className="w-3.5 h-3.5" /> {showTable ? 'Ver Partidos' : 'Ver Tabla'}
+                    <TrendingUp className="w-4 h-4" /> {showTable ? 'Ver Partidos' : 'Ver Tabla'}
                   </button>
                 )}
               </div>
@@ -664,7 +664,7 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                   }
                 }} 
                 className={cn(
-                  "p-2 rounded-xl transition-all flex items-center gap-2 font-bold text-xs border",
+                  "p-2.5 rounded-xl transition-all flex items-center gap-2 font-bold text-xs border",
                   deletingId === selectedTournament ? "bg-rose-600 border-rose-500 text-white" : "border-slate-800 text-rose-400 hover:bg-rose-950/40"
                 )}
               >
@@ -677,10 +677,10 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-slate-800/80 border-b border-slate-700">
-                      <th className="px-4 py-3 text-[10px] font-black uppercase text-slate-400">Equipo</th>
-                      <th className="px-2 py-3 text-[10px] font-black uppercase text-slate-400 text-center">PJ</th>
-                      <th className="px-2 py-3 text-[10px] font-black uppercase text-slate-400 text-center">PTS</th>
-                      <th className="px-2 py-3 text-[10px] font-black uppercase text-slate-400 text-center">DG</th>
+                      <th className="px-4 py-3.5 text-xs font-black uppercase text-slate-300">Equipo</th>
+                      <th className="px-2 py-3.5 text-xs font-black uppercase text-slate-300 text-center">PJ</th>
+                      <th className="px-2 py-3.5 text-xs font-black uppercase text-slate-300 text-center">PTS</th>
+                      <th className="px-2 py-3.5 text-xs font-black uppercase text-slate-300 text-center">DG</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -689,15 +689,15 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <span className={cn(
-                              "w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold",
-                              idx === 0 ? "bg-amber-400 text-slate-950 font-black" : "bg-slate-800 text-slate-400 border border-slate-700"
+                              "w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold",
+                              idx === 0 ? "bg-amber-400 text-slate-950 font-black" : "bg-slate-800 text-slate-300 border border-slate-700"
                             )}>{idx + 1}</span>
-                            <span className="font-bold text-sm text-white">{team.name}</span>
+                            <span className="font-bold text-sm sm:text-base text-white">{team.name}</span>
                           </div>
                         </td>
-                        <td className="px-2 py-4 text-center font-bold text-slate-400">{team.pj}</td>
+                        <td className="px-2 py-4 text-center font-bold text-slate-300">{team.pj}</td>
                         <td className="px-2 py-4 text-center font-black text-white">{team.pts}</td>
-                        <td className="px-2 py-4 text-center text-xs font-medium text-slate-400">{team.gf - team.gc}</td>
+                        <td className="px-2 py-4 text-center text-xs sm:text-sm font-medium text-slate-300">{team.gf - team.gc}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -759,8 +759,8 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                      <Trophy className="w-5 h-5" />
                    </div>
                    <div className="flex-1">
-                     <div className="text-[10px] font-black uppercase text-amber-400">Oro</div>
-                     <div className="font-bold text-white">
+                     <div className="text-xs font-black uppercase text-amber-400">Oro</div>
+                     <div className="font-bold text-white text-base">
                        {currentTournament.matches.find(m => m.round === 102)?.winnerId 
                         ? currentTournament.teams.find(t => t.id === currentTournament.matches.find(m => m.round === 102)?.winnerId)?.name
                         : leaderboard[0]?.name || 'Por definir'}
@@ -772,8 +772,8 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                      <Award className="w-5 h-5" />
                    </div>
                    <div className="flex-1">
-                     <div className="text-[10px] font-black uppercase text-slate-400">Plata</div>
-                     <div className="font-bold text-white">
+                     <div className="text-xs font-black uppercase text-slate-300">Plata</div>
+                     <div className="font-bold text-white text-base">
                        {currentTournament.matches.find(m => m.round === 102)?.status === 'finished'
                         ? currentTournament.teams.find(t => t.id === (currentTournament.matches.find(m => m.round === 102)?.teamA === currentTournament.matches.find(m => m.round === 102)?.winnerId ? currentTournament.matches.find(m => m.round === 102)?.teamB : currentTournament.matches.find(m => m.round === 102)?.teamA))?.name
                         : leaderboard[1]?.name || 'Por definir'}
@@ -785,15 +785,15 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({ courseId, 
                      <Star className="w-5 h-5" />
                    </div>
                    <div className="flex-1">
-                     <div className="text-[10px] font-black uppercase text-amber-500">Bronce</div>
-                     <div className="font-bold text-white">
+                     <div className="text-xs font-black uppercase text-amber-500">Bronce</div>
+                     <div className="font-bold text-white text-base">
                        {currentTournament.matches.find(m => m.round === 103)?.winnerId
                         ? currentTournament.teams.find(t => t.id === currentTournament.matches.find(m => m.round === 103)?.winnerId)?.name
                         : 'Por definir'}
                      </div>
                    </div>
                  </div>
-                 <p className="text-[10px] text-slate-400 mt-4 italic">El Diploma Olímpico se entrega a los participantes destacados de cada grupo.</p>
+                 <p className="text-xs text-slate-400 mt-4 italic">El Diploma Olímpico se entrega a los participantes destacados de cada grupo.</p>
               </div>
             </div>
           </div>

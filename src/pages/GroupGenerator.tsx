@@ -428,7 +428,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
               <div className="text-sm font-medium leading-snug">
                 <p><b className="text-white">Configuración Avanzada:</b> {specialCount} alumnos marcados serán repartidos equitativamente.</p>
                 <p className="mt-1 opacity-80 border-t border-blue-800/60 pt-1">Optimizando distribución según historial de clases anteriores.</p>
-                <div className="flex gap-3 pt-2 text-[10px] uppercase font-black opacity-90">
+                <div className="flex gap-3 pt-2 text-xs uppercase font-bold opacity-90">
                   <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-rose-500" /> C1</span>
                   <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> C2</span>
                   <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> C3</span>
