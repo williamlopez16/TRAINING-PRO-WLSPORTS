@@ -3,7 +3,7 @@ import { useAppStore } from '../store/useAppStore';
 import { 
   ChevronLeft, RefreshCw, Save, AlertCircle, LayoutGrid, 
   Users, Star, Trophy, Dices, Pencil, Check, Share2, 
-  Search, Eye, EyeOff, X, CheckCircle2 
+  Search, Eye, EyeOff, X, CheckCircle2, Shield 
 } from 'lucide-react';
 import { View } from '../App';
 import { Student, GroupConfig, GroupResult } from '../types';
@@ -44,6 +44,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
   const [editingNameValue, setEditingNameValue] = useState<string>('');
   const [selectedStudent, setSelectedStudent] = useState<{groupIdx: number, sIdx: number} | null>(null);
   const [isSaved, setIsSaved] = useState(false);
+  const [isTeacherUnlocked, setIsTeacherUnlocked] = useState(false);
   const [searchStudentTerm, setSearchStudentTerm] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -310,16 +311,17 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
   };
 
   const assignRandomNamesAll = () => {
-    if (!result || isSaved) return;
+    if (!result || (isSaved && !isTeacherUnlocked)) return;
     const shuffled = [...RANDOM_TEAM_NAMES].sort(() => 0.5 - Math.random());
     const newNames = result.map((_, i) => shuffled[i % shuffled.length] || `Equipo ${i + 1}`);
     setGroupNames(newNames);
+    if (isSaved) setIsSaved(false);
     showToast('🎲 Nombres deportivos asignados');
   };
 
   const assignRandomNameSingle = (idx: number, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (isSaved) return;
+    if (!result || (isSaved && !isTeacherUnlocked)) return;
     const currentNames = [...groupNames];
     const available = RANDOM_TEAM_NAMES.filter(n => !currentNames.includes(n));
     const pool = available.length > 0 ? available : RANDOM_TEAM_NAMES;
@@ -329,27 +331,28 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
     if (editingGroupIdx === idx) {
       setEditingNameValue(randomChoice);
     }
+    if (isSaved) setIsSaved(false);
   };
 
   const startEditingName = (idx: number, currentName: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (isSaved) return;
+    if (isSaved && !isTeacherUnlocked) return;
     setEditingGroupIdx(idx);
     setEditingNameValue(currentName);
   };
 
   const saveEditingName = (idx: number) => {
-    if (isSaved) return;
     const trimmed = editingNameValue.trim();
     const currentNames = [...groupNames];
     currentNames[idx] = trimmed || `Grupo ${idx + 1}`;
     setGroupNames(currentNames);
     setEditingGroupIdx(null);
+    if (isSaved) setIsSaved(false);
   };
 
   const handleStudentClick = (groupIdx: number, sIdx: number) => {
-    // Si los grupos ya fueron guardados, quedan bloqueados y no se permite intercambiar
-    if (!result || isSaved) return;
+    // Solo se permite reubicar si el docente activó el escudo en secreto
+    if (!result || !isTeacherUnlocked) return;
     
     if (!selectedStudent) {
       setSelectedStudent({ groupIdx, sIdx });
@@ -360,7 +363,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
         return;
       }
 
-      // Reubicar suavemente los dos alumnos
+      // Reubicar discretamente los dos alumnos
       const newResult = [...result].map(arr => [...arr]);
       const temp = newResult[selectedStudent.groupIdx][selectedStudent.sIdx];
       newResult[selectedStudent.groupIdx][selectedStudent.sIdx] = newResult[groupIdx][sIdx];
@@ -368,6 +371,10 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
       
       setResult(newResult);
       setSelectedStudent(null);
+      // Si estaba guardado previamente, permitir volver a guardar la nueva distribución
+      if (isSaved) {
+        setIsSaved(false);
+      }
     }
   };
 
@@ -403,7 +410,21 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
           </h1>
           <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">{course.name}</p>
         </div>
-        <div className="w-9" />
+        <button 
+          onClick={() => {
+            setIsTeacherUnlocked(prev => !prev);
+            setSelectedStudent(null);
+          }}
+          className={cn(
+            "p-2 rounded-xl transition-all active:scale-95 border",
+            isTeacherUnlocked 
+              ? "bg-blue-600/20 text-blue-400 border-blue-500/40 shadow-sm" 
+              : "bg-slate-800/80 border-slate-700/60 text-slate-400 hover:text-slate-300"
+          )}
+          aria-label="Seguridad"
+        >
+          <Shield className="w-5 h-5" />
+        </button>
       </header>
 
       {!result ? (
@@ -520,7 +541,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                 <span className="hidden sm:inline">WhatsApp</span>
               </button>
 
-              {!isSaved && (
+              {(!isSaved || isTeacherUnlocked) && (
                 <button
                   onClick={assignRandomNamesAll}
                   title="Asignar nombres deportivos al azar a todos los grupos"
@@ -542,7 +563,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
           </div>
 
           {/* Indicador discreto si hay un alumno seleccionado para mover */}
-          {selectedStudent && (
+          {selectedStudent && isTeacherUnlocked && (
             <div className="bg-slate-900/90 border border-slate-700 rounded-2xl px-4 py-2.5 mb-4 flex items-center justify-between text-xs text-slate-200 animate-in fade-in shadow-md">
               <span className="truncate">
                 Seleccionado: <b className="text-white">{result[selectedStudent.groupIdx]?.[selectedStudent.sIdx]?.name}</b> — toca otro para reubicar
@@ -625,13 +646,13 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                       <div className="flex items-center justify-between gap-2 w-full group">
                         <div 
                           onClick={() => {
-                            if (!isSaved) startEditingName(groupIdx, currentGroupName);
+                            if (!isSaved || isTeacherUnlocked) startEditingName(groupIdx, currentGroupName);
                           }}
                           className={cn(
                             "flex items-center gap-2 min-w-0 flex-1 py-1",
-                            isSaved ? "cursor-default" : "cursor-pointer hover:opacity-90"
+                            (!isSaved || isTeacherUnlocked) ? "cursor-pointer hover:opacity-90" : "cursor-default"
                           )}
-                          title={isSaved ? currentGroupName : "Clic para renombrar este grupo"}
+                          title={(!isSaved || isTeacherUnlocked) ? "Clic para renombrar este grupo" : currentGroupName}
                         >
                           <span className={cn(
                             "text-base sm:text-lg font-black break-words leading-tight tracking-wide",
@@ -639,13 +660,13 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                           )}>
                             {currentGroupName}
                           </span>
-                          {!isSaved && (
+                          {(!isSaved || isTeacherUnlocked) && (
                             <Pencil className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition-colors flex-shrink-0 opacity-50 group-hover:opacity-100" />
                           )}
                         </div>
 
                         <div className="flex items-center gap-1.5 flex-shrink-0">
-                          {!isSaved && (
+                          {(!isSaved || isTeacherUnlocked) && (
                             <button
                               type="button"
                               onClick={(e) => assignRandomNameSingle(groupIdx, e)}
@@ -684,9 +705,9 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                                ? "bg-amber-400 text-slate-950 font-black border-amber-300 shadow-md ring-2 ring-amber-300 scale-[1.02] cursor-default" 
                                : isSelected
                                  ? "bg-blue-600 text-white border-blue-500 shadow-md ring-2 ring-blue-400 cursor-pointer"
-                                 : isSaved
-                                   ? "bg-slate-800/90 text-slate-200 border-slate-700/50 cursor-default"
-                                   : "bg-slate-800/90 text-slate-200 border-slate-700/50 hover:border-slate-600 cursor-pointer"
+                                 : isTeacherUnlocked
+                                   ? "bg-slate-800/90 text-slate-200 border-slate-700/50 hover:border-slate-500 cursor-pointer"
+                                   : "bg-slate-800/90 text-slate-200 border-slate-700/50 cursor-default"
                            )}
                            title={student.name}
                          >
