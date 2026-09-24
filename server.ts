@@ -34,6 +34,79 @@ async function startServer() {
     res.status(404).send("APK not found");
   });
 
+  // Direct Apple iOS Configuration Profile (.mobileconfig) for iPhone & iPad
+  app.get(["/api/download-ios-profile", "/WLSPORTS.mobileconfig"], (req, res) => {
+    try {
+      const host = req.get("host") || "localhost:3000";
+      const protocol = req.protocol === "https" || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+      const appUrl = `${protocol}://${host}/`;
+
+      let iconBase64 = "";
+      const iconPath = path.join(process.cwd(), "public", "apple-touch-icon.png");
+      if (fs.existsSync(iconPath)) {
+        iconBase64 = fs.readFileSync(iconPath).toString("base64");
+      }
+
+      const mobileConfigXml = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>PayloadContent</key>
+    <array>
+        <dict>
+            <key>FullScreen</key>
+            <true/>
+            ${iconBase64 ? `<key>Icon</key>\n            <data>${iconBase64}</data>` : ''}
+            <key>IsRemovable</key>
+            <true/>
+            <key>Label</key>
+            <string>WLSPORTS</string>
+            <key>PayloadDescription</key>
+            <string>Instala la aplicación nativa WLSPORTS Groups en tu iPhone o iPad.</string>
+            <key>PayloadDisplayName</key>
+            <string>WLSPORTS Groups</string>
+            <key>PayloadIdentifier</key>
+            <string>com.wlsports.groups.webclip</string>
+            <key>PayloadType</key>
+            <string>com.apple.webClip.managed</string>
+            <key>PayloadUUID</key>
+            <string>94B3C53C-2580-4D56-A6E9-C6F4C0D4A09B</string>
+            <key>PayloadVersion</key>
+            <integer>1</integer>
+            <key>Precomposed</key>
+            <true/>
+            <key>URL</key>
+            <string>${appUrl}</string>
+        </dict>
+    </array>
+    <key>PayloadDescription</key>
+    <string>Instalador oficial de WLSPORTS Groups para iPhone y iPad</string>
+    <key>PayloadDisplayName</key>
+    <string>WLSPORTS Groups (App iOS)</string>
+    <key>PayloadIdentifier</key>
+    <string>com.wlsports.groups.profile</string>
+    <key>PayloadOrganization</key>
+    <string>WLSPORTS</string>
+    <key>PayloadRemovalDisallowed</key>
+    <false/>
+    <key>PayloadType</key>
+    <string>Configuration</string>
+    <key>PayloadUUID</key>
+    <string>4E38E5A7-919F-4D2A-BD06-039A7F11C87E</string>
+    <key>PayloadVersion</key>
+    <integer>1</integer>
+</dict>
+</plist>`;
+
+      res.setHeader("Content-Type", "application/x-apple-aspen-config; charset=utf-8");
+      res.setHeader("Content-Disposition", 'attachment; filename="WLSPORTS.mobileconfig"');
+      res.send(mobileConfigXml);
+    } catch (err: any) {
+      console.error("Error generating iOS profile:", err);
+      res.status(500).send("Error generando el instalador para iOS");
+    }
+  });
+
   app.post("/api/save-initial-data", async (req, res) => {
     try {
       const fs = await import("fs/promises");

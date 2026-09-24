@@ -75,6 +75,10 @@ export function PWAInstallButton() {
     document.body.removeChild(link);
   };
 
+  const triggerIosProfileDownload = () => {
+    window.location.href = '/api/download-ios-profile';
+  };
+
   const handleClick = () => {
     setShowModal(true);
     if (!isIOS) {
@@ -103,11 +107,11 @@ export function PWAInstallButton() {
       <button
         id="btn-pwa-install"
         onClick={handleClick}
-        title="Descargar e instalar WLSPORTS en tu celular"
+        title={isIOS ? "Instalar WLSPORTS en tu iPhone o iPad" : "Descargar e instalar WLSPORTS en tu celular"}
         className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-blue-500/25 flex items-center gap-2 transition-all cursor-pointer flex-shrink-0 animate-pulse"
       >
         <Download className="w-4 h-4" />
-        <span>Instalar App (APK)</span>
+        <span>{isIOS ? 'Instalar en iPhone (iOS)' : 'Instalar App (APK)'}</span>
       </button>
 
       {/* Modal de descarga e instalación */}
@@ -122,29 +126,46 @@ export function PWAInstallButton() {
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-600/30">
-                <PackageCheck className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-600/30">
+                <Smartphone className="w-6 h-6" />
               </div>
               <div>
                 <h3 className="text-base font-black text-slate-900">Instalador WLSPORTS</h3>
-                <p className="text-xs text-slate-500 font-medium">App Nativa para Android</p>
+                <p className="text-xs text-slate-500 font-medium">
+                  {isIOS ? 'App Nativa para iPhone y iPad' : 'App Nativa para Android'}
+                </p>
               </div>
             </div>
 
             {isIOS ? (
-              <div className="space-y-3 text-xs sm:text-sm text-slate-700">
-                <p className="font-semibold text-slate-900">En iPhone / iPad (Safari):</p>
-                <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-                  <p>Toca el botón <strong>Compartir</strong> <Share className="w-3.5 h-3.5 inline mx-1 text-blue-600" /> en la barra inferior de Safari.</p>
+              <div className="space-y-3.5 text-xs text-slate-700">
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl">
+                  <p className="font-bold text-blue-950 text-xs sm:text-sm mb-1">
+                    Método 1: Instalación Oficial Apple (.mobileconfig)
+                  </p>
+                  <p className="text-xs text-blue-800 mb-2.5">
+                    Instala WLSPORTS directamente en el cajón de apps de tu iPhone sin pasar por App Store:
+                  </p>
+                  <button
+                    onClick={triggerIosProfileDownload}
+                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-colors active:scale-95"
+                  >
+                    <Download className="w-4 h-4" /> Descargar Perfil para iPhone
+                  </button>
+                  <div className="mt-2.5 space-y-1.5 text-[11px] text-blue-900 bg-white/70 p-2 rounded-lg border border-blue-100">
+                    <p><strong>1.</strong> Safari te preguntará si permites descargar: toca <strong>Permitir</strong>.</p>
+                    <p><strong>2.</strong> Abre <strong>Ajustes</strong> en tu iPhone y toca arriba <strong>"Perfil descargado"</strong>.</p>
+                    <p><strong>3.</strong> Pulsa <strong>Instalar</strong> arriba a la derecha ¡y listo!</p>
+                  </div>
                 </div>
-                <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-                  <p>Desliza y selecciona <strong className="inline-flex items-center gap-1 font-bold text-slate-900"><PlusSquare className="w-3.5 h-3.5 text-slate-700" /> "Agregar a pantalla de inicio"</strong>.</p>
-                </div>
-                <div className="flex items-start gap-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-                  <p>Presiona <strong>"Agregar"</strong> y se guardará como App en tu iPhone.</p>
+
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                  <p className="font-bold text-slate-900 text-xs mb-1">
+                    ¿Por qué no salía "Agregar a inicio"?
+                  </p>
+                  <p className="text-slate-600 text-[11px] leading-relaxed">
+                    Si abriste desde WhatsApp, Gmail o Chrome en iOS, Apple <strong>bloquea</strong> esa opción. Debes usar <strong>Safari oficial</strong> y deslizar hacia abajo en Compartir hasta ver <em>"Agregar a inicio"</em> (o tocar <em>"Editar acciones..."</em> al final).
+                  </p>
                 </div>
               </div>
             ) : (

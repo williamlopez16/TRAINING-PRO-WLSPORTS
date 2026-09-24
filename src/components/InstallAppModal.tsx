@@ -133,15 +133,17 @@ export function InstallAppBanner() {
             </div>
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/40 text-xs font-black uppercase tracking-wider text-blue-100 mb-1 border border-white/10">
-                📲 App Oficial para tu Celular
+                {isIOS ? '🍎 App Oficial para iPhone / iPad' : '📲 App Oficial para tu Celular'}
               </div>
               <h3 className="text-base sm:text-lg font-black text-white leading-snug">
-                Descargar e Instalar WLSPORTS
+                {isIOS ? 'Instalar WLSPORTS en tu iPhone' : 'Descargar e Instalar WLSPORTS'}
               </h3>
               <p className="text-xs text-blue-100/90 font-medium mt-0.5">
-                {deferredPrompt 
-                  ? '¡Tu dispositivo está listo! Pulsa instalar para añadir la App directamente.' 
-                  : 'Instálala como App independiente con acceso directo, offline y pantalla completa.'}
+                {isIOS 
+                  ? 'Descarga el perfil oficial para iPhone/iPad o instálala directamente desde Safari.' 
+                  : deferredPrompt 
+                    ? '¡Tu dispositivo está listo! Pulsa instalar para añadir la App directamente.' 
+                    : 'Instálala como App independiente con acceso directo, offline y pantalla completa.'}
               </p>
             </div>
           </div>
@@ -151,7 +153,7 @@ export function InstallAppBanner() {
               onClick={handleInstallClick}
               className="px-6 py-3 bg-white text-blue-700 hover:bg-blue-50 font-black text-sm rounded-2xl shadow-md transition-all active:scale-95 flex items-center gap-2 flex-shrink-0 animate-pulse"
             >
-              <Download className="w-4 h-4" /> Instalar App Ahora
+              <Download className="w-4 h-4" /> {isIOS ? 'Instalar en iPhone' : 'Instalar App Ahora'}
             </button>
           </div>
         </div>
@@ -288,82 +290,140 @@ function InstallGuideModal({ onClose, isIOS, isAndroid, isInIframe }: ModalProps
           </div>
         )}
 
-        {/* Action 1: Forzar apertura en Chrome (Android) */}
-        <div className="mb-4 p-4 rounded-2xl bg-blue-950/40 border border-blue-900/60 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</span>
-              <span className="font-black text-white text-sm">Abrir en Google Chrome (Móvil)</span>
-            </div>
-            <span className="text-xs font-bold uppercase px-2.5 py-1 bg-blue-900/60 text-blue-300 border border-blue-700/60 rounded-full">Recomendado</span>
-          </div>
-          <p className="text-xs text-slate-300">
-            Si abriste el enlace desde WhatsApp u otra app, pulsa este botón para pasarte a Chrome y activar la instalación:
-          </p>
-          <button
-            onClick={handleOpenInChromeAndroid}
-            className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 transition-all active:scale-95 min-h-[44px]"
-          >
-            <ExternalLink className="w-4 h-4" /> Abrir en la App de Google Chrome
-          </button>
-        </div>
-
-        {/* Action 2: Escanear con Cámara */}
-        <div className="mb-4 p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center">
-          <p className="font-black text-white text-xs sm:text-sm uppercase tracking-wider mb-2 flex items-center justify-center gap-1.5">
-            <Smartphone className="w-4 h-4 text-blue-400" />
-            O Escanea con la cámara de tu celular
-          </p>
-          <div className="inline-block p-2 bg-white rounded-2xl shadow-xs border border-slate-700">
-            <img 
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=2&data=${encodeURIComponent(currentUrl)}`} 
-              alt="Código QR para abrir en celular" 
-              className="w-32 h-32 mx-auto rounded-lg"
-              loading="eager"
-            />
-          </div>
-          <p className="text-xs text-slate-400 font-medium mt-1.5">
-            Apunta la cámara de tu móvil para abrir directamente.
-          </p>
-        </div>
-
-        {/* Action 3: Opciones adicionales (APK / Bundle) */}
-        <div className="space-y-2.5 mb-4">
-          <p className="text-xs font-black uppercase tracking-wider text-slate-300">Otras formas de descarga:</p>
-          
-          <div className="p-3 bg-slate-900 hover:bg-slate-850 rounded-2xl border border-slate-800 flex items-center justify-between gap-2 transition-colors">
-            <div className="flex items-center gap-2.5">
-              <Package className="w-5 h-5 text-indigo-400 flex-shrink-0" />
-              <div className="text-left">
-                <p className="text-xs sm:text-sm font-bold text-white">Descargar APK para Android (Nativo)</p>
-                <p className="text-xs text-slate-400">Paquete .apk firmado (se instala en el cajón de apps)</p>
+        {isIOS ? (
+          /* Secciones específicas para iPhone / iPad */
+          <div className="space-y-4 mb-4">
+            {/* Método 1: Perfil Apple Oficial */}
+            <div className="p-4.5 rounded-2xl bg-gradient-to-br from-blue-950/60 to-indigo-950/60 border border-blue-800/60 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-black">1</span>
+                  <span className="font-black text-white text-sm sm:text-base">Instalación Oficial Apple (.mobileconfig)</span>
+                </div>
+                <span className="text-[10px] sm:text-xs font-black uppercase px-2.5 py-1 bg-blue-500/30 text-blue-200 border border-blue-400/40 rounded-full">Recomendado</span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Descarga el perfil oficial de iOS para instalar WLSPORTS en la pantalla de inicio y biblioteca de tu iPhone como app nativa:
+              </p>
+              <a
+                href="/api/download-ios-profile"
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 transition-all active:scale-95 min-h-[44px]"
+              >
+                <Download className="w-4 h-4" /> Descargar Perfil para iPhone / iPad
+              </a>
+              <div className="p-3 bg-slate-900/90 rounded-xl border border-blue-900/40 space-y-2 text-xs text-slate-300">
+                <p className="font-bold text-blue-300 text-xs uppercase tracking-wider">Pasos para activar en tu iPhone:</p>
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-400 font-bold">1.</span>
+                  <span>Safari preguntará si permites la descarga: pulsa <strong>Permitir</strong> y luego <strong>Cerrar</strong>.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-400 font-bold">2.</span>
+                  <span>Abre la app <strong>Ajustes</strong> de tu iPhone y verás arriba <strong>"Perfil descargado"</strong>.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-400 font-bold">3.</span>
+                  <span>Tócalo, presiona <strong>Instalar</strong> arriba a la derecha, introduce tu código y confirma.</span>
+                </div>
               </div>
             </div>
-            <a
-              href="/WLSPORTS-Groups.apk"
-              download="WLSPORTS-Groups.apk"
-              className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors flex-shrink-0 min-h-[36px]"
-            >
-              <Download className="w-3.5 h-3.5" /> Descargar APK
-            </a>
-          </div>
 
-          <div className="p-3 bg-slate-900 hover:bg-slate-850 rounded-2xl border border-slate-800 flex items-center justify-between gap-2 transition-colors">
-            <div className="flex items-center gap-2.5">
-              <Download className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-              <div className="text-left">
-                <p className="text-xs sm:text-sm font-bold text-white">Descargar Archivo Web Offline</p>
-                <p className="text-xs text-slate-400">Guarda el lanzador en tu móvil para usarlo sin internet</p>
+            {/* Método 2: Por Safari */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-lg bg-slate-800 text-slate-300 flex items-center justify-center text-xs font-black">2</span>
+                <span className="font-black text-white text-sm">¿Por qué no salía "Agregar a inicio"?</span>
+              </div>
+              <div className="p-3 bg-amber-950/30 border border-amber-900/50 rounded-xl text-xs text-amber-200/90 leading-relaxed">
+                <p className="font-bold text-amber-200 mb-1">Motivo habitual en iOS:</p>
+                Si abriste el enlace desde <strong>WhatsApp, Gmail, Chrome iOS o modo privado</strong>, Apple <strong>oculta deliberadamente</strong> la opción de agregar apps.
+              </div>
+              <p className="text-xs text-slate-400">
+                Para hacerlo manual, copia el enlace, pégalo en <strong>Safari oficial</strong>, toca Compartir y si no ves la opción, baja hasta <strong>"Editar acciones..."</strong> para activarla.
+              </p>
+            </div>
+          </div>
+        ) : (
+          /* Secciones para Android / PC */
+          <>
+            {/* Action 1: Forzar apertura en Chrome (Android) */}
+            <div className="mb-4 p-4 rounded-2xl bg-blue-950/40 border border-blue-900/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</span>
+                  <span className="font-black text-white text-sm">Abrir en Google Chrome (Móvil)</span>
+                </div>
+                <span className="text-xs font-bold uppercase px-2.5 py-1 bg-blue-900/60 text-blue-300 border border-blue-700/60 rounded-full">Recomendado</span>
+              </div>
+              <p className="text-xs text-slate-300">
+                Si abriste el enlace desde WhatsApp u otra app, pulsa este botón para pasarte a Chrome y activar la instalación:
+              </p>
+              <button
+                onClick={handleOpenInChromeAndroid}
+                className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-blue-600/30 flex items-center justify-center gap-2 transition-all active:scale-95 min-h-[44px]"
+              >
+                <ExternalLink className="w-4 h-4" /> Abrir en la App de Google Chrome
+              </button>
+            </div>
+
+            {/* Action 2: Escanear con Cámara */}
+            <div className="mb-4 p-4 bg-slate-900 rounded-2xl border border-slate-800 text-center">
+              <p className="font-black text-white text-xs sm:text-sm uppercase tracking-wider mb-2 flex items-center justify-center gap-1.5">
+                <Smartphone className="w-4 h-4 text-blue-400" />
+                O Escanea con la cámara de tu celular
+              </p>
+              <div className="inline-block p-2 bg-white rounded-2xl shadow-xs border border-slate-700">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=2&data=${encodeURIComponent(currentUrl)}`} 
+                  alt="Código QR para abrir en celular" 
+                  className="w-32 h-32 mx-auto rounded-lg"
+                  loading="eager"
+                />
+              </div>
+              <p className="text-xs text-slate-400 font-medium mt-1.5">
+                Apunta la cámara de tu móvil para abrir directamente.
+              </p>
+            </div>
+
+            {/* Action 3: Opciones adicionales (APK / Bundle) */}
+            <div className="space-y-2.5 mb-4">
+              <p className="text-xs font-black uppercase tracking-wider text-slate-300">Otras formas de descarga:</p>
+              
+              <div className="p-3 bg-slate-900 hover:bg-slate-850 rounded-2xl border border-slate-800 flex items-center justify-between gap-2 transition-colors">
+                <div className="flex items-center gap-2.5">
+                  <Package className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+                  <div className="text-left">
+                    <p className="text-xs sm:text-sm font-bold text-white">Descargar APK para Android (Nativo)</p>
+                    <p className="text-xs text-slate-400">Paquete .apk firmado (se instala en el cajón de apps)</p>
+                  </div>
+                </div>
+                <a
+                  href="/WLSPORTS-Groups.apk"
+                  download="WLSPORTS-Groups.apk"
+                  className="px-3 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors flex-shrink-0 min-h-[36px]"
+                >
+                  <Download className="w-3.5 h-3.5" /> Descargar APK
+                </a>
+              </div>
+
+              <div className="p-3 bg-slate-900 hover:bg-slate-850 rounded-2xl border border-slate-800 flex items-center justify-between gap-2 transition-colors">
+                <div className="flex items-center gap-2.5">
+                  <Download className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                  <div className="text-left">
+                    <p className="text-xs sm:text-sm font-bold text-white">Descargar Archivo Web Offline</p>
+                    <p className="text-xs text-slate-400">Guarda el lanzador en tu móvil para usarlo sin internet</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleDownloadAppBundle}
+                  className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors flex-shrink-0 min-h-[36px]"
+                >
+                  Descargar <Download className="w-3 h-3" />
+                </button>
               </div>
             </div>
-            <button
-              onClick={handleDownloadAppBundle}
-              className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1 transition-colors flex-shrink-0 min-h-[36px]"
-            >
-              Descargar <Download className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
+          </>
+        )}
 
         {/* Footer */}
         <div className="pt-3 border-t border-slate-800 flex items-center gap-2">

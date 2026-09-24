@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { ChevronLeft, Plus, FileUp, Edit2, Check, User, Trash2, X, AlertCircle, History, Sparkles, Loader2, Shield, Star, Trophy, Users } from 'lucide-react';
+import { ChevronLeft, Plus, FileUp, Edit2, Check, User, Trash2, X, AlertCircle, History, Sparkles, Loader2, Shield, Star, Trophy, Users, Share2, CheckCircle2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { View } from '../App';
 import { Gender, Student } from '../types';
@@ -460,8 +460,8 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                           )} />
                         )}
                       </div>
-                      <div className="flex-1 truncate">
-                        <div className={`text-base font-bold truncate ${!student.isActive ? 'text-slate-500 line-through decoration-slate-600' : 'text-slate-100'}`}>{student.name}</div>
+                      <div className="flex-1 min-w-0 pr-2">
+                        <div className={`text-base font-bold break-words leading-snug ${!student.isActive ? 'text-slate-500 line-through decoration-slate-600' : 'text-slate-100'}`}>{student.name}</div>
                       </div>
                     </div>
 
@@ -559,9 +559,48 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
 }
 
 function HistoryView({ courseId }: { courseId: string }) {
-  const { histories, deleteHistory } = useAppStore();
+  const { histories, deleteHistory, courses } = useAppStore();
   const [historyToDelete, setHistoryToDelete] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const course = courses.find(c => c.id === courseId);
   const courseHistories = histories.filter(h => h.courseId === courseId);
+
+  const handleShareHistory = async (history: any) => {
+    const courseName = course?.name || 'Curso';
+    const dateStr = new Date(history.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    let text = `⚽ *GRUPOS GUARDADOS - ${courseName.toUpperCase()}*\n📅 ${dateStr} • ${history.groups.length} Equipos\n\n`;
+    
+    history.groups.forEach((g: any[], i: number) => {
+      const name = history.groupNames?.[i] || `Grupo ${i + 1}`;
+      text += `🏆 *${name}* (${g.length} integrantes):\n`;
+      g.forEach((student: any) => {
+        text += `  • ${student.name}\n`;
+      });
+      text += `\n`;
+    });
+
+    text += `Generado con WLSPORTS Groups`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Grupos - ${courseName}`,
+          text: text
+        });
+        return;
+      } catch (err) {
+        // Fallback
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(history.id);
+      setTimeout(() => setCopiedId(null), 2500);
+    } catch (e) {
+      // ignore
+    }
+  };
 
   if (courseHistories.length === 0) {
     return (
@@ -581,9 +620,26 @@ function HistoryView({ courseId }: { courseId: string }) {
                <div className="font-bold text-white">{new Date(history.date).toLocaleDateString()} {new Date(history.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                <div className="text-xs text-blue-400 uppercase mt-1 tracking-wider font-semibold">{history.groups.length} Grupos • Modo: {history.config.mode.replace('_', ' ')}</div>
              </div>
-             <button onClick={() => setHistoryToDelete(history.id)} className="p-2 text-slate-500 hover:text-red-400 transition-colors">
-               <Trash2 className="w-4 h-4" />
-             </button>
+             <div className="flex items-center gap-1">
+               <button 
+                 onClick={() => handleShareHistory(history)} 
+                 className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-slate-800 rounded-xl transition-colors"
+                 title="Compartir o copiar por WhatsApp"
+               >
+                 {copiedId === history.id ? (
+                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                 ) : (
+                   <Share2 className="w-4 h-4" />
+                 )}
+               </button>
+               <button 
+                 onClick={() => setHistoryToDelete(history.id)} 
+                 className="p-2 text-slate-500 hover:text-red-400 hover:bg-slate-800 rounded-xl transition-colors"
+                 title="Eliminar del historial"
+               >
+                 <Trash2 className="w-4 h-4" />
+               </button>
+             </div>
           </div>
           
           <div className="space-y-3">

@@ -1,6 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { ChevronLeft, RefreshCw, Save, Replace, Shield, Copy, AlertCircle, LayoutGrid, Users, Lock, Unlock, Sparkles, Star, Trophy, Dices, Pencil, Check } from 'lucide-react';
+import { 
+  ChevronLeft, RefreshCw, Save, AlertCircle, LayoutGrid, 
+  Users, Star, Trophy, Dices, Pencil, Check, Share2, 
+  Search, Eye, EyeOff, X, CheckCircle2 
+} from 'lucide-react';
 import { View } from '../App';
 import { Student, GroupConfig, GroupResult } from '../types';
 import { cn } from '../lib/utils';
@@ -27,9 +31,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
   const course = courses.find(c => c.id === courseId);
   const courseHistories = useMemo(() => histories.filter(h => h.courseId === courseId).sort((a,b) => b.date - a.date), [histories, courseId]);
   const activeStudents = useMemo(() => course?.students.filter(s => s.isActive) || [], [course]);
-  const specialCount = useMemo(() => activeStudents.filter(s => s.reservedGroup && s.reservedGroup > 0).length, [activeStudents]);
 
-  const [isTeacherMode, setIsTeacherMode] = useState(false);
   const [config, setConfig] = useState<GroupConfig>({
     mode: 'random',
     type: 'by_count',
@@ -41,7 +43,52 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
   const [editingGroupIdx, setEditingGroupIdx] = useState<number | null>(null);
   const [editingNameValue, setEditingNameValue] = useState<string>('');
   const [selectedStudent, setSelectedStudent] = useState<{groupIdx: number, sIdx: number} | null>(null);
-  const [isLocked, setIsLocked] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [searchStudentTerm, setSearchStudentTerm] = useState('');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(curr => curr === msg ? null : curr);
+    }, 3200);
+  };
+
+  const shareGroups = async () => {
+    if (!result || !course) return;
+    const dateStr = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+    let text = `⚽ *GRUPOS - ${course.name.toUpperCase()}*\n📅 ${dateStr} • ${result.length} Equipos\n\n`;
+    
+    result.forEach((group, idx) => {
+      const name = groupNames[idx] || `Grupo ${idx + 1}`;
+      text += `🏆 *${name}* (${group.length} integrantes):\n`;
+      group.forEach((student, sIdx) => {
+        text += `  • ${student.name}\n`;
+      });
+      text += `\n`;
+    });
+
+    text += `Generado con WLSPORTS Groups`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Grupos - ${course.name}`,
+          text: text
+        });
+        return;
+      } catch (err) {
+        // Fallback to clipboard
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('📋 ¡Grupos copiados! Listo para pegar en WhatsApp');
+    } catch (err) {
+      showToast('No se pudo copiar automáticamente');
+    }
+  };
 
   if (!course) return null;
 
@@ -257,19 +304,22 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
     setResult(filteredGroups);
     setGroupNames(filteredGroups.map((_, i) => `Grupo ${i + 1}`));
     setSelectedStudent(null);
-    setIsLocked(false);
+    setSearchStudentTerm('');
     setEditingGroupIdx(null);
+    setIsSaved(false);
   };
 
   const assignRandomNamesAll = () => {
-    if (!result) return;
+    if (!result || isSaved) return;
     const shuffled = [...RANDOM_TEAM_NAMES].sort(() => 0.5 - Math.random());
     const newNames = result.map((_, i) => shuffled[i % shuffled.length] || `Equipo ${i + 1}`);
     setGroupNames(newNames);
+    showToast('🎲 Nombres deportivos asignados');
   };
 
   const assignRandomNameSingle = (idx: number, e?: React.MouseEvent) => {
     e?.stopPropagation();
+    if (isSaved) return;
     const currentNames = [...groupNames];
     const available = RANDOM_TEAM_NAMES.filter(n => !currentNames.includes(n));
     const pool = available.length > 0 ? available : RANDOM_TEAM_NAMES;
@@ -283,11 +333,13 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
 
   const startEditingName = (idx: number, currentName: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
+    if (isSaved) return;
     setEditingGroupIdx(idx);
     setEditingNameValue(currentName);
   };
 
   const saveEditingName = (idx: number) => {
+    if (isSaved) return;
     const trimmed = editingNameValue.trim();
     const currentNames = [...groupNames];
     currentNames[idx] = trimmed || `Grupo ${idx + 1}`;
@@ -296,18 +348,20 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
   };
 
   const handleStudentClick = (groupIdx: number, sIdx: number) => {
-    if (isLocked) return;
+    // Si los grupos ya fueron guardados, quedan bloqueados y no se permite intercambiar
+    if (!result || isSaved) return;
     
     if (!selectedStudent) {
       setSelectedStudent({ groupIdx, sIdx });
     } else {
-      // Swap
+      // Si toca al mismo alumno, deseleccionar
       if (selectedStudent.groupIdx === groupIdx && selectedStudent.sIdx === sIdx) {
-        setSelectedStudent(null); // toggle off
+        setSelectedStudent(null);
         return;
       }
 
-      const newResult = [...result!].map(arr => [...arr]);
+      // Reubicar suavemente los dos alumnos
+      const newResult = [...result].map(arr => [...arr]);
       const temp = newResult[selectedStudent.groupIdx][selectedStudent.sIdx];
       newResult[selectedStudent.groupIdx][selectedStudent.sIdx] = newResult[groupIdx][sIdx];
       newResult[groupIdx][sIdx] = temp;
@@ -318,7 +372,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
   };
 
   const save = () => {
-    if (!result) return;
+    if (!result || isSaved) return;
     const finalNames = result.map((_, i) => groupNames[i] || `Grupo ${i + 1}`);
     saveHistory({
       id: uuidv4(),
@@ -328,29 +382,28 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
       groups: result,
       groupNames: finalNames
     });
-    alert('¡Grupos y nombres guardados en el historial!');
+    setIsSaved(true);
+    setSelectedStudent(null);
+    setEditingGroupIdx(null);
+    showToast('💾 ¡Grupos guardados exitosamente!');
   };
 
   return (
     <div className="flex-1 flex flex-col bg-[#0d111c] min-h-screen text-slate-100">
       <header className="bg-[#0f1523]/95 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-800 sticky top-0 z-10">
-        <button onClick={() => onNavigate('home')} className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors">
+        <button 
+          onClick={() => onNavigate('home')} 
+          className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
+        >
           <ChevronLeft className="w-7 h-7" />
         </button>
         <div className="flex-1 px-4 text-center">
-          <h1 className="text-xl font-bold text-white truncate">Generador</h1>
+          <h1 className="text-xl font-bold text-white truncate">
+            Sorteo de Grupos
+          </h1>
           <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">{course.name}</p>
         </div>
-        <button 
-          onClick={() => setIsTeacherMode(!isTeacherMode)} 
-          className={cn(
-            "p-2 rounded-xl transition-all active:scale-95 border",
-            isTeacherMode ? "bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/30" : "bg-slate-800 border-slate-700 text-slate-400 hover:text-white"
-          )}
-          title="Modo Reservado"
-        >
-          <Shield className="w-6 h-6" />
-        </button>
+        <div className="w-9" />
       </header>
 
       {!result ? (
@@ -422,22 +475,6 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
             </p>
           </div>
 
-          {isTeacherMode && specialCount > 0 && (
-            <div className="bg-blue-950/40 border border-blue-900/60 p-4 rounded-3xl flex items-start gap-3 text-blue-300 animate-in fade-in slide-in-from-bottom-2">
-              <Sparkles className="w-6 h-6 flex-shrink-0 mt-0.5 text-blue-400" />
-              <div className="text-sm font-medium leading-snug">
-                <p><b className="text-white">Configuración Avanzada:</b> {specialCount} alumnos marcados serán repartidos equitativamente.</p>
-                <p className="mt-1 opacity-80 border-t border-blue-800/60 pt-1">Optimizando distribución según historial de clases anteriores.</p>
-                <div className="flex gap-3 pt-2 text-xs uppercase font-bold opacity-90">
-                  <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-rose-500" /> C1</span>
-                  <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> C2</span>
-                  <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> C3</span>
-                  <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-amber-500" /> C4</span>
-                </div>
-              </div>
-            </div>
-          )}
-
           <button 
             onClick={generate}
             className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-3xl py-5 text-xl font-black shadow-lg shadow-blue-600/30 active:scale-95 transition-all"
@@ -448,22 +485,51 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
         </div>
       ) : (
         <div className="flex-1 flex flex-col p-4">
+          {/* Toast Notification */}
+          {toastMessage && (
+            <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 border border-slate-700 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs sm:text-sm font-bold animate-in fade-in slide-in-from-top-4 backdrop-blur-md max-w-sm w-full mx-auto justify-center">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+              <span>{toastMessage}</span>
+            </div>
+          )}
+
+          {/* BARRA DE ACCIÓN */}
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4 mt-2">
             <div>
-              <h2 className="text-2xl font-black text-white">Resultado</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-black text-white">Resultado Oficial</h2>
+                {isSaved && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-800/60 text-emerald-400 text-xs font-bold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Guardado
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-slate-400 font-medium mt-0.5">
                 {result.length} grupos • {result.reduce((acc, g) => acc + g.length, 0)} estudiantes asignados
               </p>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Compartir por WhatsApp / Portapapeles */}
               <button
-                onClick={assignRandomNamesAll}
-                title="Asignar nombres deportivos al azar a todos los grupos"
-                className="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wide flex items-center gap-1.5 shadow-md shadow-blue-600/30 active:scale-95 transition-all border border-blue-400/40"
+                onClick={shareGroups}
+                title="Compartir o copiar grupos para WhatsApp"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2.5 rounded-2xl text-xs font-black flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
               >
-                <Dices className="w-4 h-4 text-white" />
-                <span>Nombres al Azar</span>
+                <Share2 className="w-4 h-4" />
+                <span className="hidden sm:inline">WhatsApp</span>
               </button>
+
+              {!isSaved && (
+                <button
+                  onClick={assignRandomNamesAll}
+                  title="Asignar nombres deportivos al azar a todos los grupos"
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wide flex items-center gap-1.5 shadow-md shadow-blue-600/30 active:scale-95 transition-all border border-blue-400/40"
+                >
+                  <Dices className="w-4 h-4 text-white" />
+                  <span className="hidden sm:inline">Nombres</span>
+                </button>
+              )}
 
               <button 
                 onClick={generate} 
@@ -472,38 +538,69 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
-              <button 
-                onClick={() => setIsLocked(!isLocked)} 
-                title={isLocked ? "Desbloquear intercambio" : "Bloquear cambios"}
-                className={cn(
-                  "p-2.5 rounded-2xl transition-all shadow-sm border active:scale-95",
-                  isLocked ? "bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-600/30" : "bg-slate-800 border-slate-700 text-slate-300 hover:text-white"
-                )}
-              >
-                {isLocked ? <Lock className="w-4 h-4" /> : <Unlock className="w-4 h-4" />}
-              </button>
             </div>
           </div>
 
+          {/* Indicador discreto si hay un alumno seleccionado para mover */}
           {selectedStudent && (
-             <div className="bg-blue-600 text-white p-3 rounded-2xl text-center mb-4 text-sm font-bold inline-flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 w-full mx-auto container shadow-md shadow-blue-600/30">
-               <Replace className="w-4 h-4" /> Selecciona a otro alumno para intercambiarlo
-             </div>
+            <div className="bg-slate-900/90 border border-slate-700 rounded-2xl px-4 py-2.5 mb-4 flex items-center justify-between text-xs text-slate-200 animate-in fade-in shadow-md">
+              <span className="truncate">
+                Seleccionado: <b className="text-white">{result[selectedStudent.groupIdx]?.[selectedStudent.sIdx]?.name}</b> — toca otro para reubicar
+              </span>
+              <button 
+                onClick={() => setSelectedStudent(null)}
+                className="text-[11px] font-bold text-slate-400 hover:text-white ml-2 underline flex-shrink-0"
+              >
+                Cancelar
+              </button>
+            </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pb-32 overflow-y-auto">
+          {/* BUSCADOR DE ALUMNO (Facilita que cada alumno encuentre su grupo sin tocar la pantalla) */}
+          <div className="mb-4 relative">
+            <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <input 
+              type="text"
+              value={searchStudentTerm}
+              onChange={e => setSearchStudentTerm(e.target.value)}
+              placeholder="¿En qué equipo estoy? Escribe tu nombre para encontrarlo rápido..."
+              className="w-full bg-slate-900 border border-slate-700/80 rounded-2xl pl-11 pr-10 py-3 text-xs sm:text-sm font-bold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors"
+            />
+            {searchStudentTerm && (
+              <button 
+                onClick={() => setSearchStudentTerm('')}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1"
+                title="Limpiar búsqueda"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* LISTA DE GRUPOS EN GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 pb-36 overflow-y-auto">
             {result.map((group, groupIdx) => {
               const currentGroupName = groupNames[groupIdx] || `Grupo ${groupIdx + 1}`;
               const isEditing = editingGroupIdx === groupIdx;
+              const normalizedSearch = searchStudentTerm.trim().toLowerCase();
+              const hasMatchingStudent = normalizedSearch.length > 0 && group.some(s => s.name.toLowerCase().includes(normalizedSearch));
 
               return (
-                <div key={groupIdx} className="bg-slate-900 border rounded-3xl p-3 shadow-md flex flex-col border-slate-800 hover:border-slate-700 transition-colors">
-                  {/* Cabecera del Grupo: Editable y con botón aleatorio individual */}
-                  <div className="border-b border-slate-800 pb-2 mb-2 px-1 min-h-[34px] flex items-center">
+                <div 
+                  key={groupIdx} 
+                  className={cn(
+                    "bg-slate-900 border rounded-3xl p-4 shadow-md flex flex-col transition-all",
+                    hasMatchingStudent 
+                      ? "border-amber-400/90 ring-2 ring-amber-400/40 bg-slate-900 shadow-lg shadow-amber-500/20 scale-[1.01]" 
+                      : "border-slate-800 hover:border-slate-700"
+                  )}
+                >
+                  {/* Cabecera del Grupo */}
+                  <div className="border-b border-slate-800 pb-3 mb-3 px-1 min-h-[38px] flex items-center">
                     {isEditing ? (
                       <div className="flex items-center gap-1.5 w-full" onClick={e => e.stopPropagation()}>
                         <input 
-                          type="text"
+                          type="text" 
                           autoFocus
                           value={editingNameValue}
                           onChange={e => setEditingNameValue(e.target.value)}
@@ -525,28 +622,45 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between gap-1 w-full group">
+                      <div className="flex items-center justify-between gap-2 w-full group">
                         <div 
-                          onClick={() => startEditingName(groupIdx, currentGroupName)}
-                          className="flex items-center gap-1.5 cursor-pointer min-w-0 flex-1 hover:opacity-90 py-1"
-                          title="Clic para renombrar este grupo"
+                          onClick={() => {
+                            if (!isSaved) startEditingName(groupIdx, currentGroupName);
+                          }}
+                          className={cn(
+                            "flex items-center gap-2 min-w-0 flex-1 py-1",
+                            isSaved ? "cursor-default" : "cursor-pointer hover:opacity-90"
+                          )}
+                          title={isSaved ? currentGroupName : "Clic para renombrar este grupo"}
                         >
-                          <span className="text-sm sm:text-base font-black text-white truncate tracking-wide">
+                          <span className={cn(
+                            "text-base sm:text-lg font-black break-words leading-tight tracking-wide",
+                            hasMatchingStudent ? "text-amber-300" : "text-white"
+                          )}>
                             {currentGroupName}
                           </span>
-                          <Pencil className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition-colors flex-shrink-0 opacity-50 group-hover:opacity-100" />
+                          {!isSaved && (
+                            <Pencil className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition-colors flex-shrink-0 opacity-50 group-hover:opacity-100" />
+                          )}
                         </div>
 
                         <div className="flex items-center gap-1.5 flex-shrink-0">
-                          <button
-                            type="button"
-                            onClick={(e) => assignRandomNameSingle(groupIdx, e)}
-                            className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-xl transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
-                            title="Nombre al azar para este grupo"
-                          >
-                            <Dices className="w-4 h-4" />
-                          </button>
-                          <span className="bg-slate-800 text-slate-300 text-xs font-black px-2.5 py-1 rounded-full border border-slate-700/60">
+                          {!isSaved && (
+                            <button
+                              type="button"
+                              onClick={(e) => assignRandomNameSingle(groupIdx, e)}
+                              className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-xl transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center"
+                              title="Nombre al azar para este grupo"
+                            >
+                              <Dices className="w-4 h-4" />
+                            </button>
+                          )}
+                          <span className={cn(
+                            "text-xs font-black px-2.5 py-1 rounded-full border",
+                            hasMatchingStudent 
+                              ? "bg-amber-400/20 text-amber-300 border-amber-400/40" 
+                              : "bg-slate-800 text-slate-300 border-slate-700/60"
+                          )}>
                             {group.length}
                           </span>
                         </div>
@@ -554,33 +668,46 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                     )}
                   </div>
 
-                  {/* Lista de Jugadores / Estudiantes del Grupo */}
-                  <div className="space-y-2 flex-1">
+                  {/* Lista de Jugadores / Estudiantes del Grupo con Nombres Completos */}
+                  <div className="space-y-2.5 flex-1">
                     {group.map((student, sIdx) => {
                        const isSelected = selectedStudent?.groupIdx === groupIdx && selectedStudent?.sIdx === sIdx;
+                       const isStudentMatch = normalizedSearch.length > 0 && student.name.toLowerCase().includes(normalizedSearch);
+
                        return (
                          <div 
                            key={student.id} 
                            onClick={() => handleStudentClick(groupIdx, sIdx)}
-                           className={`py-2.5 px-3.5 rounded-xl text-sm sm:text-base font-bold flex items-center gap-2.5 transition-all cursor-pointer select-none border min-h-[44px]
-                             ${isSelected ? 'bg-blue-600 text-white border-blue-500 shadow-md' : 'bg-slate-800/90 text-slate-200 border-slate-700/50 hover:bg-slate-700'}
-                             ${isLocked ? 'pointer-events-none' : ''}`}
-                           title={isLocked ? student.name : `Clic para intercambiar a ${student.name}`}
+                           className={cn(
+                             "py-3 px-3.5 rounded-2xl text-sm sm:text-base font-bold flex items-start sm:items-center gap-3 transition-all select-none border min-h-[48px]",
+                             isStudentMatch 
+                               ? "bg-amber-400 text-slate-950 font-black border-amber-300 shadow-md ring-2 ring-amber-300 scale-[1.02] cursor-default" 
+                               : isSelected
+                                 ? "bg-blue-600 text-white border-blue-500 shadow-md ring-2 ring-blue-400 cursor-pointer"
+                                 : isSaved
+                                   ? "bg-slate-800/90 text-slate-200 border-slate-700/50 cursor-default"
+                                   : "bg-slate-800/90 text-slate-200 border-slate-700/50 hover:border-slate-600 cursor-pointer"
+                           )}
+                           title={student.name}
                          >
-                           <span className={`w-6 h-6 flex-shrink-0 flex items-center justify-center rounded-lg text-xs relative font-black
-                              ${isSelected ? 'bg-white/20' : student.gender === 'M' ? 'bg-blue-950 text-blue-400 border border-blue-800/60' : student.gender === 'F' ? 'bg-pink-950 text-pink-400 border border-pink-800/60' : 'bg-slate-700 text-slate-300'}`}>
+                           <span className={cn(
+                             "w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-lg text-xs relative font-black mt-0.5 sm:mt-0",
+                             isStudentMatch
+                               ? "bg-slate-950 text-amber-300"
+                               : isSelected 
+                                 ? "bg-white/20 text-white" 
+                                 : student.gender === 'M' 
+                                   ? "bg-blue-950 text-blue-400 border border-blue-800/60" 
+                                   : student.gender === 'F' 
+                                     ? "bg-pink-950 text-pink-400 border border-pink-800/60" 
+                                     : "bg-slate-700 text-slate-300"
+                           )}>
                              {student.gender}
-                             {isTeacherMode && student.reservedGroup && student.reservedGroup > 0 && (
-                               <div className={cn(
-                                 "absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border border-slate-900 animate-in zoom-in",
-                                 student.reservedGroup === 1 && "bg-rose-500",
-                                 student.reservedGroup === 2 && "bg-blue-500",
-                                 student.reservedGroup === 3 && "bg-emerald-500",
-                                 student.reservedGroup === 4 && "bg-amber-500"
-                               )} />
-                             )}
                            </span>
-                           <span className="truncate">{student.name}</span>
+                           {/* Nombre Completo visible sin recortar */}
+                           <span className="break-words leading-snug flex-1 select-text text-left">
+                             {student.name}
+                           </span>
                          </div>
                        );
                     })}
@@ -590,11 +717,28 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
             })}
           </div>
 
-          {/* Fab To Save Area */}
+          {/* BARRA INFERIOR / ACCIONES */}
           <div className="fixed bottom-4 pb-safe left-0 right-0 max-w-lg mx-auto px-4 sm:px-6 z-20">
              <div className="grid grid-cols-2 gap-3">
-               <button onClick={save} className="bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 p-4 sm:p-5 rounded-2xl sm:rounded-3xl font-black text-base flex items-center justify-center gap-2 shadow-xl active:scale-95 transition-all min-h-[50px]">
-                 <Save className="w-5 h-5 text-blue-400" /> Guardar
+               <button 
+                 onClick={save} 
+                 disabled={isSaved}
+                 className={cn(
+                   "border p-4 sm:p-5 rounded-2xl sm:rounded-3xl font-black text-base flex items-center justify-center gap-2 shadow-xl transition-all min-h-[50px]",
+                   isSaved
+                     ? "bg-slate-800/60 text-emerald-400 border-emerald-500/30 cursor-default"
+                     : "bg-slate-800 hover:bg-slate-700 text-white border-slate-700 active:scale-95"
+                 )}
+               >
+                 {isSaved ? (
+                   <>
+                     <CheckCircle2 className="w-5 h-5 text-emerald-400" /> Guardado
+                   </>
+                 ) : (
+                   <>
+                     <Save className="w-5 h-5 text-blue-400" /> Guardar
+                   </>
+                 )}
                </button>
                <button
                  onClick={() => {
@@ -611,6 +755,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                </button>
              </div>
           </div>
+
         </div>
       )}
     </div>
