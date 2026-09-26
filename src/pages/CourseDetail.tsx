@@ -17,7 +17,7 @@ interface CourseDetailProps {
 }
 
 export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
-  const { courses, folders, addStudent, updateStudent, deleteStudent, toggleStudentActive, addMultipleStudents } = useAppStore();
+  const { courses, folders, addStudent, updateStudent, deleteStudent, toggleStudentActive, setAllStudentsActive, addMultipleStudents } = useAppStore();
   const course = courses.find(c => c.id === courseId);
   const folder = folders?.find(f => f.id === course?.folderId);
   
@@ -32,6 +32,14 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
   const [name, setName] = useState('');
   const [gender, setGender] = useState<Gender>('O');
   const [studentToDelete, setStudentToDelete] = useState<{id: string, name: string} | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(curr => curr === msg ? null : curr);
+    }, 3000);
+  };
 
   if (!course) {
     return <div className="p-8">Curso no encontrado.</div>;
@@ -198,9 +206,20 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
   };
 
   const activeCount = course.students.filter(s => s.isActive).length;
+  const totalCount = course.students.length;
+  const allActive = totalCount > 0 && activeCount === totalCount;
+  const inactiveCount = totalCount - activeCount;
 
   return (
     <div className="flex-1 flex flex-col bg-[#0d111c] min-h-screen text-slate-100">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 border border-slate-700 text-white px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-2.5 text-xs sm:text-sm font-bold animate-in fade-in slide-in-from-top-4 backdrop-blur-md max-w-sm w-full mx-auto justify-center">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       <header className="bg-[#0f1523]/95 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-800 sticky top-0 z-10">
         <button onClick={() => onNavigate('home')} className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors">
           <ChevronLeft className="w-7 h-7" />
@@ -411,12 +430,98 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
               <button onClick={() => setNewMode(true)} className="mt-4 text-blue-400 font-semibold underline">Agregar Estudiantes</button>
             </div>
           ) : (
-            <div className="space-y-2">
-              <div className="px-1 pb-2 flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Estudiante</span>
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest pr-2">Presente</span>
+            <div className="space-y-4">
+              {/* INTERRUPTOR PRINCIPAL PARA REACTIVAR TODOS LOS ESTUDIANTES */}
+              <div className={cn(
+                "p-4 rounded-3xl border transition-all shadow-md flex items-center justify-between gap-4",
+                inactiveCount > 0 
+                  ? "bg-amber-950/20 border-amber-500/40 shadow-amber-950/10" 
+                  : "bg-slate-900 border-slate-800"
+              )}>
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className={cn(
+                    "w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors border",
+                    allActive 
+                      ? "bg-emerald-950/80 border-emerald-700/60 text-emerald-400" 
+                      : "bg-amber-950/80 border-amber-700/60 text-amber-400"
+                  )}>
+                    <CheckCircle2 className="w-6 h-6" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm sm:text-base font-black text-white">
+                        {allActive ? "Todos los estudiantes presentes" : "Reactivar todos los estudiantes"}
+                      </span>
+                      {inactiveCount > 0 ? (
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40">
+                          {inactiveCount} apagados
+                        </span>
+                      ) : (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
+                          {activeCount}/{totalCount} presentes
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {inactiveCount > 0 
+                        ? "Toca el interruptor para reactivar a todos después de haberlos apagado" 
+                        : "Todos los estudiantes están activos para el sorteo"}
+                    </p>
+                  </div>
+                </div>
+
+                <button 
+                  type="button"
+                  onClick={() => {
+                    const nextState = !allActive;
+                    setAllStudentsActive(courseId, nextState);
+                    showToast(nextState ? '✅ ¡Todos los estudiantes reactivados!' : 'Todos los estudiantes apagados');
+                  }}
+                  className={cn(
+                    "w-14 h-8 rounded-full transition-colors flex items-center relative box-border flex-shrink-0 cursor-pointer shadow-md active:scale-95",
+                    allActive ? "bg-emerald-500" : "bg-slate-800 border border-slate-700 hover:border-slate-500"
+                  )}
+                  title={allActive ? "Apagar todos los estudiantes" : "Reactivar todos los estudiantes"}
+                  aria-label="Interruptor para reactivar todos los estudiantes"
+                >
+                  <span className={cn(
+                    "w-6 h-6 bg-white rounded-full transition-all absolute shadow-md",
+                    allActive ? "left-7" : "left-1"
+                  )} />
+                </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+
+              <div>
+                <div className="px-1 pb-2 flex justify-between items-center">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+                    Estudiantes ({totalCount})
+                  </span>
+                  <div className="flex items-center gap-2 pr-1">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      {allActive ? 'Todos activos' : `${activeCount}/${totalCount}`}
+                    </span>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        const nextState = !allActive;
+                        setAllStudentsActive(courseId, nextState);
+                        showToast(nextState ? '✅ ¡Todos los estudiantes reactivados!' : 'Todos los estudiantes apagados');
+                      }}
+                      className={cn(
+                        "w-12 h-6 rounded-full transition-colors flex items-center relative box-border cursor-pointer shadow-inner active:scale-95",
+                        allActive ? "bg-emerald-500" : "bg-slate-800 border border-slate-700"
+                      )}
+                      title={allActive ? "Apagar todos" : "Reactivar todos los estudiantes"}
+                      aria-label="Reactivar todos los estudiantes"
+                    >
+                      <span className={cn(
+                        "w-4 h-4 bg-white rounded-full transition-all absolute shadow-sm",
+                        allActive ? "left-7" : "left-1"
+                      )} />
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 {course.students.map((student, i) => (
                   <div 
                     key={student.id} 
@@ -483,7 +588,9 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
 
                   </div>
                 ))}
+                </div>
               </div>
+
               {isTeacherMode && (
             <div className="flex gap-2 p-3 mt-4 bg-blue-950/40 rounded-2xl border border-blue-900/60 text-blue-300 items-start animate-in fade-in slide-in-from-top-2">
                <Shield className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-400" />
@@ -502,7 +609,21 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
           
           <div className="flex gap-2 p-3 mt-4 bg-amber-950/30 rounded-2xl border border-amber-900/60 text-amber-300 items-start">
             <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-400" />
-            <p className="text-xs font-medium leading-relaxed">Apaga el interruptor verde para excluir temporalmente a estudiantes que estén ausentes o lesionados hoy. <b className="text-white">No</b> se borrarán de la lista, pero no entrarán al sorteo.</p>
+            <div className="text-xs font-medium leading-relaxed flex-1">
+              <p>Apaga el interruptor verde para excluir temporalmente a estudiantes que estén ausentes o lesionados hoy. <b className="text-white">No</b> se borrarán de la lista, pero no entrarán al sorteo.</p>
+              {inactiveCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAllStudentsActive(courseId, true);
+                    showToast('✅ ¡Todos los estudiantes reactivados!');
+                  }}
+                  className="mt-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 underline flex items-center gap-1.5 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Reactivar todos los estudiantes ({inactiveCount} apagados)
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Botón flotante para generar grupos */}

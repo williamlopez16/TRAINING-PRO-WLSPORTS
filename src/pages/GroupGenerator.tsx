@@ -27,7 +27,7 @@ interface GroupGeneratorProps {
 }
 
 export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
-  const { courses, saveHistory, histories } = useAppStore();
+  const { courses, saveHistory, histories, setAllStudentsActive } = useAppStore();
   const course = courses.find(c => c.id === courseId);
   const courseHistories = useMemo(() => histories.filter(h => h.courseId === courseId).sort((a,b) => b.date - a.date), [histories, courseId]);
   const activeStudents = useMemo(() => course?.students.filter(s => s.isActive) || [], [course]);
@@ -488,12 +488,44 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
 
           </div>
 
-          <div className="alert bg-amber-950/30 border border-amber-900/60 p-4 rounded-3xl flex items-start gap-3 text-amber-300">
-            <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5 text-amber-400" />
-            <p className="text-sm font-medium leading-snug text-balance">
-              Participan: <b className="text-white">{activeStudents.length} estudiantes presentes</b><br/>
-              Asegúrate de haber desactivado a los ausentes en la pantalla anterior.
-            </p>
+          <div className="alert bg-amber-950/30 border border-amber-900/60 p-4 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-300">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5 text-amber-400" />
+              <div className="text-sm font-medium leading-snug">
+                <p>
+                  Participan: <b className="text-white">{activeStudents.length} estudiantes presentes</b>
+                  {course.students.length > activeStudents.length && (
+                    <span className="text-slate-400"> (de {course.students.length} en total)</span>
+                  )}
+                </p>
+                {course.students.length > activeStudents.length ? (
+                  <p className="text-xs text-amber-400/90 mt-0.5">
+                    Hay {course.students.length - activeStudents.length} estudiantes apagados de la clase anterior.
+                  </p>
+                ) : (
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Asegúrate de desactivar ausentes antes del sorteo si alguno faltó hoy.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {course.students.length > activeStudents.length && (
+              <button 
+                type="button"
+                onClick={() => {
+                  setAllStudentsActive(courseId, true);
+                  showToast('✅ ¡Todos los estudiantes reactivados!');
+                }}
+                className="flex items-center gap-2 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-2xl border border-slate-700 transition-all active:scale-95 flex-shrink-0 cursor-pointer shadow-md self-end sm:self-auto"
+                title="Reactivar todos los estudiantes para este sorteo"
+              >
+                <span className="w-8 h-4 rounded-full bg-slate-700 flex items-center relative box-border">
+                  <span className="w-3 h-3 bg-white rounded-full transition-all absolute left-0.5" />
+                </span>
+                <span>Reactivar todos</span>
+              </button>
+            )}
           </div>
 
           <button 

@@ -28,6 +28,7 @@ interface AppState {
   updateStudent: (courseId: string, studentId: string, updates: Partial<Student>) => void;
   deleteStudent: (courseId: string, studentId: string) => void;
   toggleStudentActive: (courseId: string, studentId: string) => void;
+  setAllStudentsActive: (courseId: string, isActive: boolean) => void;
   
   // History
   saveHistory: (history: GroupResult) => void;
@@ -148,6 +149,18 @@ export const useAppStore = create<AppState>()(
             return {
               ...c,
               students: c.students.map(s => s.id === studentId ? { ...s, isActive: !s.isActive } : s)
+            };
+          }
+          return c;
+        })
+      })),
+
+      setAllStudentsActive: (courseId: string, isActive: boolean) => set((state) => ({
+        courses: state.courses.map(c => {
+          if (c.id === courseId) {
+            return {
+              ...c,
+              students: c.students.map(s => ({ ...s, isActive }))
             };
           }
           return c;

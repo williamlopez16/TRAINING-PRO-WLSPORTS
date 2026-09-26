@@ -23,6 +23,7 @@ export function Home({ onNavigate }: HomeProps) {
     duplicateCourse, 
     updateCourseName, 
     setCourseFolder,
+    setAllStudentsActive,
     importData: storeImportData 
   } = useAppStore();
   
@@ -439,6 +440,11 @@ export function Home({ onNavigate }: HomeProps) {
 function CourseCard({ 
   course, onNavigate, startEdit, editingId, editName, setEditName, saveEdit, duplicateCourse, deleteCourse, setCourseFolder, folders, showMoveMenu, setShowMoveMenu 
 }: any) {
+  const { setAllStudentsActive } = useAppStore();
+  const activeCount = course.students.filter((s: any) => s.isActive).length;
+  const totalCount = course.students.length;
+  const inactiveCount = totalCount - activeCount;
+
   return (
     <div className="bg-slate-900 border border-slate-800/90 p-4 sm:p-5 rounded-3xl shadow-md hover:shadow-xl hover:border-slate-700 transition-all group">
       <div className="flex items-center justify-between mb-4">
@@ -460,9 +466,33 @@ function CourseCard({
         </div>
         
         <div className="bg-slate-800 text-slate-300 border border-slate-700/60 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ml-2 shrink-0">
-          <Users className="w-4 h-4 text-blue-400" /> {course.students.length}
+          <Users className="w-4 h-4 text-blue-400" />
+          <span>{inactiveCount > 0 ? `${activeCount}/${totalCount}` : totalCount}</span>
         </div>
       </div>
+
+      {inactiveCount > 0 && (
+        <div className="mb-3.5 px-3 py-2 bg-amber-950/25 border border-amber-500/30 rounded-2xl flex items-center justify-between text-xs">
+          <span className="text-amber-300 font-bold flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            {inactiveCount} {inactiveCount === 1 ? 'estudiante apagado' : 'estudiantes apagados'}
+          </span>
+          <button 
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setAllStudentsActive(course.id, true);
+            }}
+            className="flex items-center gap-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-2.5 py-1 rounded-xl border border-slate-700 transition-all active:scale-95 cursor-pointer"
+            title="Reactivar todos los estudiantes de este grupo"
+          >
+            <span className="w-8 h-4 rounded-full bg-slate-700 flex items-center relative box-border">
+              <span className="w-3 h-3 bg-white rounded-full transition-all absolute left-0.5" />
+            </span>
+            <span>Reactivar</span>
+          </button>
+        </div>
+      )}
 
       <div className="flex gap-2.5">
         <button 
