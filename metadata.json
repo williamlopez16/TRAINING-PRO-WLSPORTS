@@ -1,6 +1,6 @@
 {
-  "name": "WLSPORTS Groups",
-  "description": "Organizador Inteligente de Grupos para Educación Física. Simple, rápido y persistente.",
+  "name": "WLSPORTS • OWL VISION PRO",
+  "description": "Organizador Inteligente de Grupos y Torneos para Educación Física. OWL VISION PRO.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

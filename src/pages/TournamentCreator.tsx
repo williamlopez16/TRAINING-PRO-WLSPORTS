@@ -588,17 +588,17 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({
   }, [tempTeams.length, format, rounds]);
 
   return (
-    <div className="min-h-screen bg-[#0d111c] text-slate-100 pb-24 selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[#080c14] text-slate-100 pb-24 selection:bg-emerald-500/30">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-blue-500/60 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-sm font-black animate-in fade-in zoom-in-95">
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 border border-emerald-500/60 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2.5 text-sm font-black animate-in fade-in zoom-in-95">
           <Sparkles className="w-4 h-4 text-amber-400 animate-spin" />
           <span>{toastMessage}</span>
         </div>
       )}
 
       {/* HEADER PRINCIPAL */}
-      <header className="sticky top-0 z-20 bg-[#0f1523]/95 backdrop-blur-md border-b border-slate-800 px-4 py-3.5 flex items-center justify-between">
+      <header className="sticky top-0 z-20 bg-[#090d16]/95 backdrop-blur-md border-b border-slate-800 px-4 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <button 
             onClick={onBack} 
@@ -607,30 +607,35 @@ export const TournamentCreator: React.FC<TournamentCreatorProps> = ({
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
+          <img 
+            src="/logo.jpg" 
+            alt="OWL VISION PRO" 
+            className="w-10 h-10 rounded-xl object-cover border border-amber-400/70 ring-1 ring-emerald-400/40 shadow-sm flex-shrink-0 bg-black"
+          />
           <div>
             <h1 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
               <Trophy className="w-5 h-5 text-amber-400" /> Torneos & Fixtures
             </h1>
-            <p className="text-xs font-bold text-blue-400 uppercase tracking-wider">{course.name}</p>
+            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">{course.name}</p>
           </div>
         </div>
 
         {/* Selector de pestañas */}
-        <div className="flex bg-slate-900/90 p-1 rounded-2xl border border-slate-800">
+        <div className="flex bg-slate-950 p-1 rounded-2xl border border-slate-800">
           <button
             onClick={() => setActiveTab('create')}
             className={cn(
               "px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5",
-              activeTab === 'create' ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" : "text-slate-400 hover:text-white"
+              activeTab === 'create' ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30 neon-glow-green-sm" : "text-slate-400 hover:text-white"
             )}
           >
-            <Plus className="w-3.5 h-3.5" /> Nuevo
+            <Plus className="w-3.5 h-3.5 stroke-[3]" /> Nuevo
           </button>
           <button
             onClick={() => setActiveTab('list')}
             className={cn(
               "px-3.5 py-1.5 rounded-xl text-xs font-black transition-all flex items-center gap-1.5",
-              activeTab === 'list' ? "bg-blue-600 text-white shadow-md shadow-blue-600/30" : "text-slate-400 hover:text-white"
+              activeTab === 'list' ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30" : "text-slate-400 hover:text-white"
             )}
           >
             <Layout className="w-3.5 h-3.5" /> Guardados ({courseTournaments.length})

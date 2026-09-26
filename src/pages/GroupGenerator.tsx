@@ -371,6 +371,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
       
       setResult(newResult);
       setSelectedStudent(null);
+      showToast('Estudiantes reubicados');
       // Si estaba guardado previamente, permitir volver a guardar la nueva distribución
       if (isSaved) {
         setIsSaved(false);
@@ -396,19 +397,26 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0d111c] min-h-screen text-slate-100">
-      <header className="bg-[#0f1523]/95 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-800 sticky top-0 z-10">
+    <div className="flex-1 flex flex-col bg-[#080c14] min-h-screen text-slate-100">
+      <header className="bg-[#090d16]/95 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-800/90 sticky top-0 z-10">
         <button 
           onClick={() => onNavigate('home')} 
           className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
         >
           <ChevronLeft className="w-7 h-7" />
         </button>
-        <div className="flex-1 px-4 text-center">
-          <h1 className="text-xl font-bold text-white truncate">
-            Sorteo de Grupos
-          </h1>
-          <p className="text-xs font-semibold text-blue-400 uppercase tracking-wider">{course.name}</p>
+        <div className="flex-1 px-3 flex items-center justify-center gap-2.5 min-w-0">
+          <img 
+            src="/logo.jpg" 
+            alt="OWL VISION PRO" 
+            className="w-9 h-9 rounded-xl object-cover border border-amber-400/70 ring-1 ring-emerald-400/40 shadow-sm flex-shrink-0 bg-black"
+          />
+          <div className="text-center min-w-0">
+            <h1 className="text-lg sm:text-xl font-black text-white truncate">
+              Sorteo de Grupos
+            </h1>
+            <p className="text-xs font-bold text-amber-400 uppercase tracking-wider">{course.name}</p>
+          </div>
         </div>
         <button 
           onClick={() => {
@@ -418,8 +426,8 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
           className={cn(
             "p-2 rounded-xl transition-all active:scale-95 border",
             isTeacherUnlocked 
-              ? "bg-blue-600/20 text-blue-400 border-blue-500/40 shadow-sm" 
-              : "bg-slate-800/80 border-slate-700/60 text-slate-400 hover:text-slate-300"
+              ? "bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-md shadow-amber-500/20" 
+              : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-300"
           )}
           aria-label="Seguridad"
         >
@@ -428,78 +436,78 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
       </header>
 
       {!result ? (
-        <div className="p-6 space-y-8 pb-20">
+        <div className="p-6 space-y-7 pb-20">
           
-          <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-md space-y-6">
+          <div className="bg-[#0b101b] rounded-3xl p-6 border border-slate-800 shadow-xl space-y-6">
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">¿Cómo dividir?</label>
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-4">¿Cómo dividir?</label>
               <div className="flex bg-slate-950 p-1 rounded-2xl mb-4 border border-slate-800">
                 <button 
                   onClick={() => setConfig({...config, type: 'by_count'})}
-                  className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${config.type === 'by_count' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'text-slate-400 hover:text-white'}`}
+                  className={`flex-1 py-3 text-sm font-black rounded-xl transition-all ${config.type === 'by_count' ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30 neon-glow-green-sm' : 'text-slate-400 hover:text-white'}`}
                 >
                   <LayoutGrid className="w-4 h-4 inline-block mr-2" /> Cantidad
                 </button>
                 <button 
                   onClick={() => setConfig({...config, type: 'by_size'})}
-                  className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${config.type === 'by_size' ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30' : 'text-slate-400 hover:text-white'}`}
+                  className={`flex-1 py-3 text-sm font-black rounded-xl transition-all ${config.type === 'by_size' ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30 neon-glow-green-sm' : 'text-slate-400 hover:text-white'}`}
                 >
                   <Users className="w-4 h-4 inline-block mr-2" /> Por Grupo
                 </button>
               </div>
 
               <div className="flex items-center gap-4">
-                <button onClick={() => setConfig({...config, value: Math.max(1, config.value - 1)})} className="w-14 h-14 bg-slate-800 border border-slate-700 rounded-2xl text-2xl font-bold text-slate-200 active:bg-slate-700 hover:bg-slate-750 transition-colors">-</button>
-                <div className="flex-1 text-center font-black text-5xl text-white">{config.value}</div>
-                <button onClick={() => setConfig({...config, value: config.value + 1})} className="w-14 h-14 bg-slate-800 border border-slate-700 rounded-2xl text-2xl font-bold text-slate-200 active:bg-slate-700 hover:bg-slate-750 transition-colors">+</button>
+                <button onClick={() => setConfig({...config, value: Math.max(1, config.value - 1)})} className="w-14 h-14 bg-slate-900 border border-slate-800 rounded-2xl text-2xl font-black text-slate-200 hover:border-amber-400/60 active:bg-slate-800 transition-colors">-</button>
+                <div className="flex-1 text-center font-black text-5xl text-white tracking-tight">{config.value}</div>
+                <button onClick={() => setConfig({...config, value: config.value + 1})} className="w-14 h-14 bg-slate-900 border border-slate-800 rounded-2xl text-2xl font-black text-slate-200 hover:border-amber-400/60 active:bg-slate-800 transition-colors">+</button>
               </div>
-              <div className="text-center mt-2 text-sm text-slate-400 font-medium">
+              <div className="text-center mt-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
                 {config.type === 'by_count' ? 'Grupos en total' : 'Estudiantes por grupo'}
               </div>
             </div>
             
-            <hr className="border-slate-800" />
+            <hr className="border-slate-800/80" />
 
             <div>
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">Modo de distribución</label>
+              <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-4">Modo de distribución</label>
               <div className="grid grid-cols-2 gap-2">
                 <button 
                   onClick={() => setConfig({...config, mode: 'random'})}
-                  className={`p-3 rounded-xl text-sm font-bold border transition-colors ${config.mode === 'random' ? 'bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-600/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'}`}
+                  className={`p-3 rounded-xl text-sm font-black border transition-colors ${config.mode === 'random' ? 'bg-emerald-500 border-emerald-400 text-slate-950 shadow-md shadow-emerald-500/30 neon-glow-green-sm' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'}`}
                 >Azar</button>
                 <button 
                   onClick={() => setConfig({...config, mode: 'balanced_mixed'})}
-                  className={`p-3 rounded-xl text-sm font-bold border transition-colors ${config.mode === 'balanced_mixed' ? 'bg-emerald-600 border-emerald-500 text-white shadow-md shadow-emerald-600/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'}`}
+                  className={`p-3 rounded-xl text-sm font-black border transition-colors ${config.mode === 'balanced_mixed' ? 'bg-amber-500 border-amber-400 text-slate-950 shadow-md shadow-amber-500/30' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'}`}
                 >Equitativo</button>
                 <button 
                   onClick={() => setConfig({...config, mode: 'men_only'})}
-                  className={`p-3 rounded-xl text-sm font-bold border transition-colors ${config.mode === 'men_only' ? 'bg-cyan-600 border-cyan-500 text-white shadow-md shadow-cyan-600/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'}`}
+                  className={`p-3 rounded-xl text-sm font-black border transition-colors ${config.mode === 'men_only' ? 'bg-cyan-500 border-cyan-400 text-slate-950 shadow-md shadow-cyan-500/30' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'}`}
                 >Solo Hombres</button>
                 <button 
                   onClick={() => setConfig({...config, mode: 'women_only'})}
-                  className={`p-3 rounded-xl text-sm font-bold border transition-colors ${config.mode === 'women_only' ? 'bg-pink-600 border-pink-500 text-white shadow-md shadow-pink-600/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'}`}
+                  className={`p-3 rounded-xl text-sm font-black border transition-colors ${config.mode === 'women_only' ? 'bg-pink-600 border-pink-500 text-white shadow-md shadow-pink-600/30' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'}`}
                 >Solo Mujeres</button>
                 <button 
                   onClick={() => setConfig({...config, mode: 'separated_gender'})}
-                  className={`p-3 rounded-xl text-sm font-bold border transition-colors col-span-2 ${config.mode === 'separated_gender' ? 'bg-purple-600 border-purple-500 text-white shadow-md shadow-purple-600/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'}`}
+                  className={`p-3 rounded-xl text-sm font-black border transition-colors col-span-2 ${config.mode === 'separated_gender' ? 'bg-purple-600 border-purple-500 text-white shadow-md shadow-purple-600/30' : 'bg-slate-900 border-slate-800 text-slate-300 hover:bg-slate-800'}`}
                 >Separar Hombres de Mujeres</button>
               </div>
             </div>
 
           </div>
 
-          <div className="alert bg-amber-950/30 border border-amber-900/60 p-4 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-300">
+          <div className="alert bg-gradient-to-r from-[#140e06] to-[#0a1017] border border-amber-500/40 p-4 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-300 shadow-md">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-6 h-6 flex-shrink-0 mt-0.5 text-amber-400" />
               <div className="text-sm font-medium leading-snug">
                 <p>
-                  Participan: <b className="text-white">{activeStudents.length} estudiantes presentes</b>
+                  Participan: <b className="text-white font-black">{activeStudents.length} estudiantes presentes</b>
                   {course.students.length > activeStudents.length && (
-                    <span className="text-slate-400"> (de {course.students.length} en total)</span>
+                    <span className="text-amber-400/80 font-bold"> (de {course.students.length} en total)</span>
                   )}
                 </p>
                 {course.students.length > activeStudents.length ? (
-                  <p className="text-xs text-amber-400/90 mt-0.5">
+                  <p className="text-xs text-amber-300/90 mt-0.5">
                     Hay {course.students.length - activeStudents.length} estudiantes apagados de la clase anterior.
                   </p>
                 ) : (
@@ -517,11 +525,11 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                   setAllStudentsActive(courseId, true);
                   showToast('✅ ¡Todos los estudiantes reactivados!');
                 }}
-                className="flex items-center gap-2 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-2xl border border-slate-700 transition-all active:scale-95 flex-shrink-0 cursor-pointer shadow-md self-end sm:self-auto"
+                className="flex items-center gap-2 text-xs font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-3.5 py-2 rounded-2xl transition-all active:scale-95 flex-shrink-0 cursor-pointer shadow-md shadow-emerald-500/30 neon-glow-green-sm self-end sm:self-auto"
                 title="Reactivar todos los estudiantes para este sorteo"
               >
-                <span className="w-8 h-4 rounded-full bg-slate-700 flex items-center relative box-border">
-                  <span className="w-3 h-3 bg-white rounded-full transition-all absolute left-0.5" />
+                <span className="w-7 h-3.5 rounded-full bg-slate-950/40 flex items-center relative box-border">
+                  <span className="w-2.5 h-2.5 bg-white rounded-full transition-all absolute left-0.5" />
                 </span>
                 <span>Reactivar todos</span>
               </button>
@@ -530,7 +538,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
 
           <button 
             onClick={generate}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-3xl py-5 text-xl font-black shadow-lg shadow-blue-600/30 active:scale-95 transition-all"
+            className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-3xl py-5 text-xl sm:text-2xl font-black shadow-xl shadow-emerald-500/30 neon-glow-green active:scale-95 transition-all tracking-wider cursor-pointer"
           >
             !CREAR GRUPOS!
           </button>
@@ -577,9 +585,9 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                 <button
                   onClick={assignRandomNamesAll}
                   title="Asignar nombres deportivos al azar a todos los grupos"
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wide flex items-center gap-1.5 shadow-md shadow-blue-600/30 active:scale-95 transition-all border border-blue-400/40"
+                  className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wide flex items-center gap-1.5 shadow-md shadow-amber-500/25 active:scale-95 transition-all border border-amber-300"
                 >
-                  <Dices className="w-4 h-4 text-white" />
+                  <Dices className="w-4 h-4 text-slate-950" />
                   <span className="hidden sm:inline">Nombres</span>
                 </button>
               )}
@@ -587,7 +595,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
               <button 
                 onClick={generate} 
                 title="Regenerar grupos"
-                className="bg-slate-800 border border-slate-700 p-2.5 rounded-2xl text-slate-300 hover:text-white shadow-sm transition-colors active:scale-95"
+                className="bg-slate-900 border border-slate-800 p-2.5 rounded-2xl text-slate-300 hover:text-emerald-400 hover:border-emerald-500/40 shadow-sm transition-all active:scale-95"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
@@ -596,9 +604,9 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
 
           {/* Indicador discreto si hay un alumno seleccionado para mover */}
           {selectedStudent && isTeacherUnlocked && (
-            <div className="bg-slate-900/90 border border-slate-700 rounded-2xl px-4 py-2.5 mb-4 flex items-center justify-between text-xs text-slate-200 animate-in fade-in shadow-md">
+            <div className="bg-slate-900/90 border border-amber-500/50 rounded-2xl px-4 py-2.5 mb-4 flex items-center justify-between text-xs text-slate-200 animate-in fade-in shadow-md">
               <span className="truncate">
-                Seleccionado: <b className="text-white">{result[selectedStudent.groupIdx]?.[selectedStudent.sIdx]?.name}</b> — toca otro para reubicar
+                Seleccionado: <b className="text-amber-300">{result[selectedStudent.groupIdx]?.[selectedStudent.sIdx]?.name}</b> — toca otro para reubicar
               </span>
               <button 
                 onClick={() => setSelectedStudent(null)}
@@ -611,13 +619,13 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
 
           {/* BUSCADOR DE ALUMNO (Facilita que cada alumno encuentre su grupo sin tocar la pantalla) */}
           <div className="mb-4 relative">
-            <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-amber-400 pointer-events-none" />
             <input 
               type="text"
               value={searchStudentTerm}
               onChange={e => setSearchStudentTerm(e.target.value)}
               placeholder="¿En qué equipo estoy? Escribe tu nombre para encontrarlo rápido..."
-              className="w-full bg-slate-900 border border-slate-700/80 rounded-2xl pl-11 pr-10 py-3 text-xs sm:text-sm font-bold text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-colors"
+              className="w-full bg-[#0b101b] border border-slate-800 rounded-2xl pl-11 pr-10 py-3 text-xs sm:text-sm font-bold text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 transition-colors"
             />
             {searchStudentTerm && (
               <button 
@@ -642,14 +650,14 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                 <div 
                   key={groupIdx} 
                   className={cn(
-                    "bg-slate-900 border rounded-3xl p-4 shadow-md flex flex-col transition-all",
+                    "bg-[#0b101b] border rounded-3xl p-4 shadow-lg flex flex-col transition-all",
                     hasMatchingStudent 
-                      ? "border-amber-400/90 ring-2 ring-amber-400/40 bg-slate-900 shadow-lg shadow-amber-500/20 scale-[1.01]" 
-                      : "border-slate-800 hover:border-slate-700"
+                      ? "border-amber-400 ring-2 ring-amber-400/50 bg-[#120f09] shadow-xl shadow-amber-500/20 scale-[1.01]" 
+                      : "border-slate-800/90 hover:border-amber-400/40"
                   )}
                 >
                   {/* Cabecera del Grupo */}
-                  <div className="border-b border-slate-800 pb-3 mb-3 px-1 min-h-[38px] flex items-center">
+                  <div className="border-b border-slate-800/80 pb-3 mb-3 px-1 min-h-[38px] flex items-center">
                     {isEditing ? (
                       <div className="flex items-center gap-1.5 w-full" onClick={e => e.stopPropagation()}>
                         <input 
@@ -663,15 +671,15 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                           }}
                           onBlur={() => saveEditingName(groupIdx)}
                           placeholder={`Grupo ${groupIdx + 1}`}
-                          className="w-full bg-slate-950 border border-blue-500 rounded-xl px-2.5 py-1 text-xs font-bold text-white outline-none focus:ring-1 focus:ring-blue-400 placeholder:text-slate-600"
+                          className="w-full bg-slate-950 border border-emerald-400 rounded-xl px-2.5 py-1 text-xs font-bold text-white outline-none focus:ring-1 focus:ring-emerald-400 placeholder:text-slate-600"
                         />
                         <button
                           type="button"
                           onMouseDown={e => { e.preventDefault(); saveEditingName(groupIdx); }}
-                          className="p-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition-colors flex-shrink-0"
+                          className="p-1.5 rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 transition-colors flex-shrink-0 font-black"
                           title="Guardar nombre"
                         >
-                          <Check className="w-3.5 h-3.5" />
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
                         </button>
                       </div>
                     ) : (
@@ -693,7 +701,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                             {currentGroupName}
                           </span>
                           {(!isSaved || isTeacherUnlocked) && (
-                            <Pencil className="w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition-colors flex-shrink-0 opacity-50 group-hover:opacity-100" />
+                            <Pencil className="w-3.5 h-3.5 text-slate-500 group-hover:text-amber-400 transition-colors flex-shrink-0 opacity-50 group-hover:opacity-100" />
                           )}
                         </div>
 
@@ -711,8 +719,8 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                           <span className={cn(
                             "text-xs font-black px-2.5 py-1 rounded-full border",
                             hasMatchingStudent 
-                              ? "bg-amber-400/20 text-amber-300 border-amber-400/40" 
-                              : "bg-slate-800 text-slate-300 border-slate-700/60"
+                              ? "bg-amber-400/20 text-amber-300 border-amber-400/50" 
+                              : "bg-slate-800/80 text-emerald-400 border-emerald-500/30"
                           )}>
                             {group.length}
                           </span>
@@ -734,12 +742,12 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                            className={cn(
                              "py-3 px-3.5 rounded-2xl text-sm sm:text-base font-bold flex items-start sm:items-center gap-3 transition-all select-none border min-h-[48px]",
                              isStudentMatch 
-                               ? "bg-amber-400 text-slate-950 font-black border-amber-300 shadow-md ring-2 ring-amber-300 scale-[1.02] cursor-default" 
+                               ? "bg-amber-400 text-slate-950 font-black border-amber-300 shadow-lg shadow-amber-400/30 ring-2 ring-amber-300 scale-[1.02] cursor-default" 
                                : isSelected
-                                 ? "bg-blue-600 text-white border-blue-500 shadow-md ring-2 ring-blue-400 cursor-pointer"
+                                 ? "bg-amber-500 text-slate-950 border-amber-400 shadow-md ring-2 ring-amber-300 cursor-pointer font-black"
                                  : isTeacherUnlocked
-                                   ? "bg-slate-800/90 text-slate-200 border-slate-700/50 hover:border-slate-500 cursor-pointer"
-                                   : "bg-slate-800/90 text-slate-200 border-slate-700/50 cursor-default"
+                                   ? "bg-slate-850/90 text-slate-200 border-slate-750 hover:border-amber-400/40 cursor-pointer"
+                                   : "bg-slate-850/90 text-slate-200 border-slate-800/80 cursor-default"
                            )}
                            title={student.name}
                          >
@@ -748,7 +756,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                              isStudentMatch
                                ? "bg-slate-950 text-amber-300"
                                : isSelected 
-                                 ? "bg-white/20 text-white" 
+                                 ? "bg-slate-950 text-amber-400" 
                                  : student.gender === 'M' 
                                    ? "bg-blue-950 text-blue-400 border border-blue-800/60" 
                                    : student.gender === 'F' 
@@ -777,10 +785,10 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                  onClick={save} 
                  disabled={isSaved}
                  className={cn(
-                   "border p-4 sm:p-5 rounded-2xl sm:rounded-3xl font-black text-base flex items-center justify-center gap-2 shadow-xl transition-all min-h-[50px]",
+                   "border p-4 sm:p-5 rounded-2xl sm:rounded-3xl font-black text-base flex items-center justify-center gap-2 shadow-xl transition-all min-h-[50px] cursor-pointer",
                    isSaved
-                     ? "bg-slate-800/60 text-emerald-400 border-emerald-500/30 cursor-default"
-                     : "bg-slate-800 hover:bg-slate-700 text-white border-slate-700 active:scale-95"
+                     ? "bg-[#07130b] text-emerald-400 border-emerald-500/40 cursor-default shadow-[0_0_15px_rgba(16,233,86,0.15)]"
+                     : "bg-slate-900 hover:bg-slate-800 text-white border-slate-700 active:scale-95"
                  )}
                >
                  {isSaved ? (
@@ -789,7 +797,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                    </>
                  ) : (
                    <>
-                     <Save className="w-5 h-5 text-blue-400" /> Guardar
+                     <Save className="w-5 h-5 text-emerald-400" /> Guardar
                    </>
                  )}
                </button>
@@ -802,7 +810,7 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
                    }));
                    onNavigate('tournament', courseId, teams);
                  }}
-                 className="bg-amber-500 hover:bg-amber-400 text-slate-950 p-4 sm:p-5 rounded-2xl sm:rounded-3xl font-black text-base flex items-center justify-center gap-2 shadow-xl shadow-amber-500/20 active:scale-95 transition-all min-h-[50px]"
+                 className="bg-amber-500 hover:bg-amber-400 text-slate-950 p-4 sm:p-5 rounded-2xl sm:rounded-3xl font-black text-base flex items-center justify-center gap-2 shadow-xl shadow-amber-500/25 active:scale-95 transition-all min-h-[50px] cursor-pointer"
                >
                  <Trophy className="w-5 h-5 fill-slate-950" /> Iniciar Torneo
                </button>

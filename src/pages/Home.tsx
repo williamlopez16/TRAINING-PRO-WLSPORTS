@@ -176,18 +176,39 @@ export function Home({ onNavigate }: HomeProps) {
   });
 
   return (
-    <div className="flex-1 flex flex-col pt-8 pb-20 px-6 bg-[#0d111c]">
-      <header className="mb-8 flex justify-between items-start">
+    <div className="flex-1 flex flex-col pt-8 pb-20 px-4 sm:px-6 bg-[#080c14]">
+      <header className="mb-7 flex justify-between items-start">
         <div className="flex items-center gap-3.5">
-          <img 
-            src="/logo.jpg" 
-            alt="WLSPORTS Logo" 
-            className="w-13 h-13 rounded-2xl object-cover shadow-xl border border-slate-700/80 ring-2 ring-blue-500/30"
-            referrerPolicy="no-referrer"
-          />
+          <div className="relative">
+            <img 
+              src="/logo.jpg" 
+              alt="WLSPORTS • OWL VISION PRO" 
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover shadow-2xl border-2 border-amber-400/70 ring-2 ring-emerald-400/50 neon-glow-green-sm bg-black"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-950 flex items-center justify-center shadow-[0_0_8px_#22c55e]">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+            </div>
+          </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">WLSPORTS <span className="text-blue-500">Groups</span></h1>
-            <p className="text-slate-400 font-medium text-xs sm:text-sm mt-0.5">Organizador Inteligente de Grupos</p>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white font-sans">
+                WLSPORTS
+              </h1>
+              <span className="text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40 font-mono">
+                PRO
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="gold-gradient-text font-serif font-black text-xs sm:text-sm tracking-wider uppercase">
+                OWL VISION PRO
+              </span>
+              <span className="text-slate-500 text-xs">·</span>
+              <span className="text-emerald-400 font-bold text-xs tracking-wide flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#22c55e]" />
+                Grupos Inteligentes
+              </span>
+            </div>
           </div>
         </div>
         <div className="flex gap-2 items-center">
@@ -195,21 +216,21 @@ export function Home({ onNavigate }: HomeProps) {
           <button 
             onClick={forceUpdateApp}
             title="Recargar y actualizar versión limpia"
-            className="p-2.5 bg-slate-800/80 text-slate-300 hover:text-white rounded-xl hover:bg-slate-700 border border-slate-700/60 transition-colors"
+            className="p-2.5 bg-slate-900/90 text-slate-300 hover:text-white rounded-xl hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition-all"
           >
             <RotateCw className="w-5 h-5" />
           </button>
           <button 
             onClick={exportData}
             title="Exportar base de datos"
-            className="p-2.5 bg-slate-800/80 text-slate-300 hover:text-white rounded-xl hover:bg-slate-700 border border-slate-700/60 transition-colors"
+            className="p-2.5 bg-slate-900/90 text-slate-300 hover:text-amber-300 rounded-xl hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition-all"
           >
             <Download className="w-5 h-5" />
           </button>
           <button 
             onClick={() => fileInputRef.current?.click()}
             title="Importar base de datos"
-            className="p-2.5 bg-slate-800/80 text-slate-300 hover:text-white rounded-xl hover:bg-slate-700 border border-slate-700/60 transition-colors"
+            className="p-2.5 bg-slate-900/90 text-slate-300 hover:text-emerald-400 rounded-xl hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/40 transition-all"
           >
             <Upload className="w-5 h-5" />
           </button>
@@ -225,10 +246,17 @@ export function Home({ onNavigate }: HomeProps) {
 
       <InstallAppBanner />
 
-      <div className="mb-8 p-4 bg-blue-950/40 rounded-2xl border border-blue-900/60 text-center">
-        <p className="text-sm font-medium text-blue-300 italic">
+      {/* Frase motivacional con estilo Oro y Neón */}
+      <div className="mb-7 p-4 bg-gradient-to-r from-slate-950 via-[#0d131f] to-slate-950 rounded-2xl border border-amber-500/30 text-center relative overflow-hidden shadow-lg">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/5 via-emerald-500/5 to-transparent pointer-events-none" />
+        <p className="text-xs sm:text-sm font-semibold text-slate-200 italic relative z-10">
           "Cada nuevo grupo es una oportunidad para aprender a <br className="sm:hidden" />convivir, adaptarse y crecer."
         </p>
+        <div className="flex items-center justify-center gap-1.5 mt-1.5 relative z-10">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#22c55e]" />
+          <span className="text-[11px] font-black uppercase tracking-widest text-amber-400 font-serif">OWL VISION PRO • WLSPORTS</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#22c55e]" />
+        </div>
       </div>
 
       <div className="flex gap-2 items-center mb-6">
@@ -237,15 +265,16 @@ export function Home({ onNavigate }: HomeProps) {
             type="text"
             value={newCourseName}
             onChange={(e) => setNewCourseName(e.target.value)}
-            placeholder="Nuevo curso (ej. 10A)"
-            className="flex-1 bg-slate-900 border border-slate-800 text-white placeholder-slate-500 rounded-2xl px-5 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium"
+            placeholder="Nuevo curso (ej. 10A, Fútbol 11)"
+            className="flex-1 bg-slate-900/90 border border-slate-800 text-white placeholder-slate-500 rounded-2xl px-5 py-3 focus:ring-2 focus:ring-emerald-400 focus:border-amber-400 transition-all font-medium"
           />
           <button 
             type="submit" 
             disabled={!newCourseName.trim()}
-            className="bg-blue-600 text-white p-3 rounded-2xl disabled:opacity-40 hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/30"
+            className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black p-3.5 rounded-2xl disabled:opacity-30 disabled:bg-slate-800 disabled:text-slate-500 transition-all shadow-lg shadow-emerald-500/30 neon-glow-green-sm active:scale-95 cursor-pointer"
+            title="Crear nuevo curso"
           >
-            <Plus className="w-6 h-6" />
+            <Plus className="w-6 h-6 stroke-[3]" />
           </button>
         </form>
         
@@ -254,9 +283,9 @@ export function Home({ onNavigate }: HomeProps) {
         {!showFolderInput ? (
           <button 
             onClick={() => setShowFolderInput(true)}
-            className="p-3 bg-slate-800/80 text-slate-300 hover:text-blue-400 border border-slate-700/60 rounded-2xl hover:bg-slate-700 transition-all flex items-center gap-2 font-semibold px-4"
+            className="p-3 bg-slate-900/90 text-slate-300 hover:text-amber-300 border border-slate-800 hover:border-amber-500/40 rounded-2xl hover:bg-slate-800 transition-all flex items-center gap-2 font-semibold px-4 min-h-[48px]"
           >
-            <FolderPlus className="w-5 h-5" />
+            <FolderPlus className="w-5 h-5 text-amber-400" />
             <span className="hidden sm:inline">Nueva Carpeta</span>
           </button>
         ) : (
@@ -268,29 +297,29 @@ export function Home({ onNavigate }: HomeProps) {
               onChange={(e) => setNewFolderName(e.target.value)}
               onBlur={() => !newFolderName.trim() && setShowFolderInput(false)}
               placeholder="Nombre carpeta"
-              className="w-40 bg-slate-900 border-blue-500/80 border text-white placeholder-slate-500 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-blue-500 transition-all font-medium"
+              className="w-40 bg-slate-900 border-amber-400/80 border text-white placeholder-slate-500 rounded-2xl px-4 py-3 focus:ring-2 focus:ring-emerald-400 transition-all font-medium"
             />
             <button 
               type="submit" 
-              className="bg-blue-600 text-white p-3 rounded-2xl hover:bg-blue-500 transition-colors"
+              className="bg-amber-500 text-slate-950 font-black p-3 rounded-2xl hover:bg-amber-400 transition-colors shadow-md shadow-amber-500/30"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-5 h-5 stroke-[3]" />
             </button>
           </form>
         )}
       </div>
 
       {courses.length > 0 && (
-        <div className="mb-8 relative">
+        <div className="mb-7 relative">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-slate-500" />
+            <Search className="h-5 w-5 text-amber-400/80" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar curso por nombre..."
-            className="w-full bg-slate-900/90 border border-slate-800 text-white placeholder-slate-500 rounded-2xl pl-11 pr-5 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all font-medium shadow-sm"
+            className="w-full bg-slate-900/90 border border-slate-800 text-white placeholder-slate-500 rounded-2xl pl-11 pr-5 py-3 focus:ring-2 focus:ring-emerald-400 focus:border-amber-400 transition-all font-medium shadow-sm"
           />
         </div>
       )}
@@ -311,7 +340,7 @@ export function Home({ onNavigate }: HomeProps) {
                   <div className="text-slate-400">
                     {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
                   </div>
-                  <div className="bg-blue-950/60 text-blue-400 p-2 rounded-xl border border-blue-800/40">
+                  <div className="bg-amber-950/40 text-amber-400 p-2 rounded-xl border border-amber-600/40">
                     <FolderOpen className="w-5 h-5" />
                   </div>
                   {editingFolderId === folder.id ? (
@@ -392,8 +421,8 @@ export function Home({ onNavigate }: HomeProps) {
             <div className="text-slate-400">
               {expandedFolders['unassigned'] !== false ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
             </div>
-            <div className="bg-slate-800 text-slate-300 p-2 rounded-xl border border-slate-700/60">
-              <LayoutGrid className="w-5 h-5" />
+            <div className="bg-slate-850 text-amber-300 p-2 rounded-xl border border-amber-500/30">
+              <LayoutGrid className="w-5 h-5 text-amber-400" />
             </div>
             <h3 className="font-bold text-slate-100 text-lg">
               Mis Cursos
@@ -446,7 +475,7 @@ function CourseCard({
   const inactiveCount = totalCount - activeCount;
 
   return (
-    <div className="bg-slate-900 border border-slate-800/90 p-4 sm:p-5 rounded-3xl shadow-md hover:shadow-xl hover:border-slate-700 transition-all group">
+    <div className="bg-[#0b101b] border border-slate-800/90 hover:border-amber-400/40 p-4 sm:p-5 rounded-3xl shadow-lg hover:shadow-[0_0_24px_rgba(212,175,55,0.12)] transition-all group">
       <div className="flex items-center justify-between mb-4">
         <div className="flex-1 min-w-0">
           {editingId === course.id ? (
@@ -459,23 +488,28 @@ function CourseCard({
               className="font-bold text-lg bg-slate-800 text-white border border-slate-700 px-3 py-1.5 rounded-xl w-full"
             />
           ) : (
-            <h2 className="text-xl font-black text-slate-100 truncate tracking-tight" title={course.name}>
+            <h2 className="text-xl font-black text-slate-100 truncate tracking-tight group-hover:text-amber-300 transition-colors" title={course.name}>
               {course.name}
             </h2>
           )}
         </div>
         
-        <div className="bg-slate-800 text-slate-300 border border-slate-700/60 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 ml-2 shrink-0">
-          <Users className="w-4 h-4 text-blue-400" />
+        <div className={cn(
+          "px-3 py-1 rounded-full text-xs font-black flex items-center gap-1.5 ml-2 shrink-0 border transition-colors",
+          inactiveCount > 0 
+            ? "bg-amber-950/40 text-amber-300 border-amber-500/40" 
+            : "bg-emerald-950/50 text-emerald-400 border-emerald-500/40 shadow-[0_0_8px_rgba(16,233,86,0.15)]"
+        )}>
+          <Users className="w-3.5 h-3.5 text-amber-400" />
           <span>{inactiveCount > 0 ? `${activeCount}/${totalCount}` : totalCount}</span>
         </div>
       </div>
 
       {inactiveCount > 0 && (
-        <div className="mb-3.5 px-3 py-2 bg-amber-950/25 border border-amber-500/30 rounded-2xl flex items-center justify-between text-xs">
+        <div className="mb-3.5 px-3 py-2 bg-amber-950/25 border border-amber-500/35 rounded-2xl flex items-center justify-between text-xs">
           <span className="text-amber-300 font-bold flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            {inactiveCount} {inactiveCount === 1 ? 'estudiante apagado' : 'estudiantes apagados'}
+            {inactiveCount} {inactiveCount === 1 ? 'apagado' : 'apagados'}
           </span>
           <button 
             type="button"
@@ -483,11 +517,11 @@ function CourseCard({
               e.stopPropagation();
               setAllStudentsActive(course.id, true);
             }}
-            className="flex items-center gap-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-2.5 py-1 rounded-xl border border-slate-700 transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 text-xs font-black bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-2.5 py-1 rounded-xl transition-all shadow-md shadow-emerald-500/30 neon-glow-green-sm active:scale-95 cursor-pointer"
             title="Reactivar todos los estudiantes de este grupo"
           >
-            <span className="w-8 h-4 rounded-full bg-slate-700 flex items-center relative box-border">
-              <span className="w-3 h-3 bg-white rounded-full transition-all absolute left-0.5" />
+            <span className="w-7 h-3.5 rounded-full bg-slate-950/40 flex items-center relative box-border">
+              <span className="w-2.5 h-2.5 bg-white rounded-full transition-all absolute left-0.5" />
             </span>
             <span>Reactivar</span>
           </button>
@@ -497,26 +531,26 @@ function CourseCard({
       <div className="flex gap-2.5">
         <button 
           onClick={() => onNavigate('course', course.id)}
-          className="flex-1 bg-slate-800 text-slate-100 border border-slate-700/80 py-3 rounded-2xl text-sm font-bold hover:bg-slate-700 transition-colors active:scale-[0.98] min-h-[44px]"
+          className="flex-1 bg-slate-900 text-slate-200 border border-slate-800 hover:border-slate-700 py-3 rounded-2xl text-sm font-bold hover:bg-slate-800 hover:text-white transition-all active:scale-[0.98] min-h-[44px]"
         >
           Editar
         </button>
         <button 
           onClick={() => onNavigate('generator', course.id)}
           disabled={course.students.length === 0}
-          className="flex-[1.3] bg-blue-600 text-white py-3 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-30 disabled:bg-slate-800 hover:bg-blue-500 transition-all shadow-md shadow-blue-600/20 active:scale-[0.98] min-h-[44px]"
+          className="flex-[1.3] bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black py-3 rounded-2xl text-sm flex items-center justify-center gap-2 disabled:opacity-30 disabled:bg-slate-800 disabled:text-slate-500 transition-all shadow-lg shadow-emerald-500/25 neon-glow-green-sm active:scale-[0.98] min-h-[44px] cursor-pointer"
         >
-          <Play className="w-4 h-4 fill-white" />
+          <Play className="w-4 h-4 fill-slate-950" />
           Grupos
         </button>
       </div>
 
       <div className="flex justify-between items-center pt-3.5 mt-3.5 border-t border-slate-800/80">
         <div className="flex gap-1.5">
-          <button onClick={() => startEdit(course.id, course.name)} className="p-2 text-slate-400 hover:text-slate-200 rounded-xl hover:bg-slate-800/60 min-w-[36px] min-h-[36px] flex items-center justify-center" title="Renombrar">
+          <button onClick={() => startEdit(course.id, course.name)} className="p-2 text-slate-400 hover:text-amber-300 rounded-xl hover:bg-slate-800/60 min-w-[36px] min-h-[36px] flex items-center justify-center transition-colors" title="Renombrar">
             <Edit2 className="w-4 h-4" />
           </button>
-          <button onClick={() => duplicateCourse(course.id)} className="p-2 text-slate-400 hover:text-blue-400 rounded-xl hover:bg-slate-800/60 min-w-[36px] min-h-[36px] flex items-center justify-center" title="Duplicar">
+          <button onClick={() => duplicateCourse(course.id)} className="p-2 text-slate-400 hover:text-amber-400 rounded-xl hover:bg-slate-800/60 min-w-[36px] min-h-[36px] flex items-center justify-center transition-colors" title="Duplicar">
             <Copy className="w-4 h-4" />
           </button>
           <button 
@@ -525,7 +559,7 @@ function CourseCard({
                 deleteCourse(course.id);
               }
             }} 
-            className="p-2 text-slate-400 hover:text-red-400 rounded-xl hover:bg-slate-800/60 min-w-[36px] min-h-[36px] flex items-center justify-center"
+            className="p-2 text-slate-400 hover:text-red-400 rounded-xl hover:bg-slate-800/60 min-w-[36px] min-h-[36px] flex items-center justify-center transition-colors"
             title="Eliminar"
           >
             <Trash2 className="w-4 h-4" />
@@ -535,7 +569,7 @@ function CourseCard({
         <div className="relative">
           <button 
             onClick={() => setShowMoveMenu(showMoveMenu === course.id ? null : course.id)}
-            className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-blue-400 transition-colors p-2 rounded-xl hover:bg-slate-800/60 min-h-[36px]"
+            className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-amber-400 transition-colors p-2 rounded-xl hover:bg-slate-800/60 min-h-[36px]"
           >
             Mover <MoreVertical className="w-4 h-4" />
           </button>
@@ -547,7 +581,7 @@ function CourseCard({
                 onClick={() => { setCourseFolder(course.id, undefined); setShowMoveMenu(null); }}
                 className={cn(
                   "w-full text-left px-4 py-2 text-sm hover:bg-slate-800 flex items-center gap-2 text-slate-200",
-                  !course.folderId && "text-blue-400 font-semibold bg-blue-950/40"
+                  !course.folderId && "text-amber-400 font-semibold bg-amber-950/40"
                 )}
               >
                 <LayoutGrid className="w-4 h-4" /> Mis Cursos
@@ -558,7 +592,7 @@ function CourseCard({
                   onClick={() => { setCourseFolder(course.id, f.id); setShowMoveMenu(null); }}
                   className={cn(
                     "w-full text-left px-4 py-2 text-sm hover:bg-slate-800 flex items-center gap-2 text-slate-200",
-                    course.folderId === f.id && "text-blue-400 font-semibold bg-blue-950/40"
+                    course.folderId === f.id && "text-amber-400 font-semibold bg-amber-950/40"
                   )}
                 >
                   <Folder className="w-4 h-4" /> {f.name}

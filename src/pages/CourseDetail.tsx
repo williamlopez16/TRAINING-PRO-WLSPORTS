@@ -220,45 +220,73 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
         </div>
       )}
 
-      <header className="bg-[#0f1523]/95 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-800 sticky top-0 z-10">
+      <header className="bg-[#090d16]/95 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-800/90 sticky top-0 z-10">
         <button onClick={() => onNavigate('home')} className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors">
           <ChevronLeft className="w-7 h-7" />
         </button>
-        <div className="flex-1 px-4">
-          <h1 className="text-xl font-bold text-white truncate flex items-center gap-2">
-            {course.name}
-            {folder && <span className="text-xs bg-blue-950/60 border border-blue-800/40 text-blue-400 px-2.5 py-1 rounded-lg font-bold uppercase tracking-wider">{folder.name}</span>}
-          </h1>
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{activeCount} presentes / {course.students.length} total</p>
+        <div className="flex-1 px-3 flex items-center gap-3 min-w-0">
+          <img 
+            src="/logo.jpg" 
+            alt="OWL VISION PRO" 
+            className="w-10 h-10 rounded-xl object-cover border border-amber-400/70 ring-1 ring-emerald-400/40 shadow-md flex-shrink-0 bg-black"
+          />
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl font-black text-white truncate flex items-center gap-2">
+              {course.name}
+              {folder && <span className="text-[10px] bg-amber-950/60 border border-amber-500/40 text-amber-300 px-2 py-0.5 rounded-lg font-black uppercase tracking-wider">{folder.name}</span>}
+            </h1>
+            <p className="text-xs font-bold text-emerald-400 tracking-wide flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#22c55e]" />
+              <span>{activeCount} presentes</span>
+              <span className="text-slate-500">/</span>
+              <span className="text-slate-400">{course.students.length} total</span>
+            </p>
+          </div>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-shrink-0">
           <button 
             onClick={() => setIsTeacherMode(!isTeacherMode)} 
             className={cn(
               "p-2 rounded-xl transition-all active:scale-95 border",
-              isTeacherMode ? "bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/30" : "bg-slate-800/80 border-slate-700/60 text-slate-400 hover:text-slate-200"
+              isTeacherMode 
+                ? "bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-md shadow-amber-500/20" 
+                : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
             )}
-            title="Modo Reservado (Distribución Forzada)"
+            title="Opciones avanzadas"
+            aria-label="Opciones avanzadas"
           >
             <Shield className="w-5 h-5" />
           </button>
           <button 
             onClick={() => onNavigate('tournament', courseId)} 
-            className="p-2 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl hover:bg-amber-500/30 transition-colors"
+            className="p-2 bg-amber-500/20 text-amber-400 border border-amber-500/40 rounded-xl hover:bg-amber-500/30 transition-colors shadow-sm"
             title="Crear Torneo / Fixture"
           >
             <Trophy className="w-5 h-5" />
           </button>
-          <button onClick={() => setNewMode(!newMode)} className="bg-blue-600 text-white p-2 rounded-xl transition-transform active:scale-95 shadow-md shadow-blue-600/30">
-            {newMode ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+          <button 
+            onClick={() => setNewMode(!newMode)} 
+            className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black p-2 rounded-xl transition-transform active:scale-95 shadow-md shadow-emerald-500/30 neon-glow-green-sm"
+          >
+            {newMode ? <X className="w-5 h-5 stroke-[3]" /> : <Plus className="w-5 h-5 stroke-[3]" />}
           </button>
         </div>
       </header>
 
-      {/* Selector de Tabs Básico */}
-      <div className="flex bg-[#0f1523] border-b border-slate-800">
-         <button onClick={() => setShowHistory(false)} className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors ${!showHistory ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}>Estudiantes</button>
-         <button onClick={() => setShowHistory(true)} className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${showHistory ? 'border-blue-500 text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-300'}`}><History className="w-4 h-4"/> Historial Grupos</button>
+      {/* Selector de Tabs */}
+      <div className="flex bg-[#090d16] border-b border-slate-800">
+         <button 
+           onClick={() => setShowHistory(false)} 
+           className={`flex-1 py-3 text-sm font-black border-b-2 transition-colors ${!showHistory ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400 hover:text-slate-300'}`}
+         >
+           Estudiantes ({course.students.length})
+         </button>
+         <button 
+           onClick={() => setShowHistory(true)} 
+           className={`flex-1 py-3 text-sm font-black border-b-2 transition-colors flex items-center justify-center gap-2 ${showHistory ? 'border-amber-400 text-amber-400' : 'border-transparent text-slate-400 hover:text-slate-300'}`}
+         >
+           <History className="w-4 h-4"/> Historial Grupos
+         </button>
       </div>
 
       {!showHistory && newMode && (
@@ -435,15 +463,15 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
               <div className={cn(
                 "p-4 rounded-3xl border transition-all shadow-md flex items-center justify-between gap-4",
                 inactiveCount > 0 
-                  ? "bg-amber-950/20 border-amber-500/40 shadow-amber-950/10" 
-                  : "bg-slate-900 border-slate-800"
+                  ? "bg-[#140e06] border-amber-500/40 shadow-amber-950/20" 
+                  : "bg-[#07130b] border-emerald-500/40 shadow-[0_0_20px_rgba(16,233,86,0.12)]"
               )}>
                 <div className="flex items-center gap-3.5 min-w-0">
                   <div className={cn(
                     "w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0 transition-colors border",
                     allActive 
-                      ? "bg-emerald-950/80 border-emerald-700/60 text-emerald-400" 
-                      : "bg-amber-950/80 border-amber-700/60 text-amber-400"
+                      ? "bg-emerald-500/20 border-emerald-500/60 text-emerald-400 shadow-[0_0_12px_rgba(16,233,86,0.3)]" 
+                      : "bg-amber-500/20 border-amber-500/60 text-amber-400"
                   )}>
                     <CheckCircle2 className="w-6 h-6" />
                   </div>
@@ -453,11 +481,11 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                         {allActive ? "Todos los estudiantes presentes" : "Reactivar todos los estudiantes"}
                       </span>
                       {inactiveCount > 0 ? (
-                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40">
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/25 text-amber-300 font-black border border-amber-500/40">
                           {inactiveCount} apagados
                         </span>
                       ) : (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
+                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-black border border-emerald-500/40 shadow-[0_0_8px_rgba(16,233,86,0.2)]">
                           {activeCount}/{totalCount} presentes
                         </span>
                       )}
@@ -478,8 +506,8 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                     showToast(nextState ? '✅ ¡Todos los estudiantes reactivados!' : 'Todos los estudiantes apagados');
                   }}
                   className={cn(
-                    "w-14 h-8 rounded-full transition-colors flex items-center relative box-border flex-shrink-0 cursor-pointer shadow-md active:scale-95",
-                    allActive ? "bg-emerald-500" : "bg-slate-800 border border-slate-700 hover:border-slate-500"
+                    "w-14 h-8 rounded-full transition-all flex items-center relative box-border flex-shrink-0 cursor-pointer shadow-md active:scale-95",
+                    allActive ? "bg-emerald-500 neon-glow-green" : "bg-slate-800 border border-slate-700 hover:border-slate-500"
                   )}
                   title={allActive ? "Apagar todos los estudiantes" : "Reactivar todos los estudiantes"}
                   aria-label="Interruptor para reactivar todos los estudiantes"
@@ -493,11 +521,11 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
 
               <div>
                 <div className="px-1 pb-2 flex justify-between items-center">
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest pl-1">
                     Estudiantes ({totalCount})
                   </span>
                   <div className="flex items-center gap-2 pr-1">
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
                       {allActive ? 'Todos activos' : `${activeCount}/${totalCount}`}
                     </span>
                     <button 
@@ -509,7 +537,7 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                       }}
                       className={cn(
                         "w-12 h-6 rounded-full transition-colors flex items-center relative box-border cursor-pointer shadow-inner active:scale-95",
-                        allActive ? "bg-emerald-500" : "bg-slate-800 border border-slate-700"
+                        allActive ? "bg-emerald-500 neon-glow-green-sm" : "bg-slate-800 border border-slate-700"
                       )}
                       title={allActive ? "Apagar todos" : "Reactivar todos los estudiantes"}
                       aria-label="Reactivar todos los estudiantes"
@@ -542,8 +570,8 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                     }}
                     className={cn(
                       "flex items-center justify-between p-4 border rounded-2xl transition-all cursor-default relative overflow-hidden",
-                      !student.isActive ? 'bg-slate-950/50 opacity-50 border-slate-800/50' : 'bg-slate-900 border-slate-800 shadow-sm hover:border-slate-700',
-                      isTeacherMode && (student.reservedGroup || student.leaderCandidate) ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-950/30' : ''
+                      !student.isActive ? 'bg-slate-950/50 opacity-40 border-slate-900' : 'bg-[#0b101b] border-slate-800/90 shadow-sm hover:border-amber-400/40',
+                      isTeacherMode && (student.reservedGroup || student.leaderCandidate) ? 'border-amber-500 ring-1 ring-amber-500/50 bg-amber-950/20' : ''
                     )}
                   >
                     {isTeacherMode && student.leaderCandidate && (
@@ -580,7 +608,8 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
                       </button>
                       <button 
                         onClick={() => toggleStudentActive(courseId, student.id)}
-                        className={`w-13 h-7 rounded-full transition-colors flex items-center relative box-border ${student.isActive ? 'bg-emerald-500' : 'bg-slate-800 border border-slate-700'}`}
+                        className={`w-13 h-7 rounded-full transition-colors flex items-center relative box-border ${student.isActive ? 'bg-emerald-500 neon-glow-green-sm' : 'bg-slate-800 border border-slate-700'}`}
+                        title={student.isActive ? "Desactivar (ausente/lesionado)" : "Activar estudiante"}
                       >
                         <span className={`w-5 h-5 bg-white rounded-full transition-all absolute shadow-sm ${student.isActive ? 'left-7' : 'left-1'}`} />
                       </button>
@@ -627,13 +656,13 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
           </div>
 
           {/* Botón flotante para generar grupos */}
-          <div className="sticky bottom-0 bg-gradient-to-t from-[#0d111c] via-[#0d111c]/95 to-transparent pt-4 pb-2 mt-4">
+          <div className="sticky bottom-0 bg-gradient-to-t from-[#080c14] via-[#080c14]/95 to-transparent pt-4 pb-2 mt-4">
             <button 
               onClick={() => onNavigate('generator', courseId)}
               disabled={activeCount === 0}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 px-6 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2.5 shadow-xl shadow-blue-600/30 active:scale-[0.98] transition-all disabled:opacity-30 disabled:bg-slate-800 min-h-[52px]"
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 py-4 px-6 rounded-2xl font-black text-base sm:text-lg flex items-center justify-center gap-2.5 shadow-xl shadow-emerald-500/30 neon-glow-green active:scale-[0.98] transition-all disabled:opacity-30 disabled:bg-slate-800 disabled:text-slate-500 min-h-[52px] cursor-pointer"
             >
-              <Users className="w-5 h-5" />
+              <Users className="w-5 h-5 stroke-[2.5]" />
               <span>Sorteo de Grupos ({activeCount} Presentes)</span>
             </button>
           </div>
