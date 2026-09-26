@@ -6,6 +6,7 @@ import { View } from '../App';
 import { Folder as FolderType } from '../types';
 import { PWAInstallButton } from '../components/PWAInstallButton';
 import { InstallAppBanner } from '../components/InstallAppModal';
+import owlLogo from '../assets/logo.jpg';
 
 interface HomeProps {
   onNavigate: (view: View, courseId?: string) => void;
@@ -176,63 +177,63 @@ export function Home({ onNavigate }: HomeProps) {
   });
 
   return (
-    <div className="flex-1 flex flex-col pt-8 pb-20 px-4 sm:px-6 bg-[#080c14]">
-      <header className="mb-7 flex justify-between items-start">
-        <div className="flex items-center gap-3.5">
-          <div className="relative">
+    <div className="flex-1 flex flex-col pt-6 sm:pt-8 pb-20 px-4 sm:px-6 bg-[#080c14]">
+      <header className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="relative shrink-0 w-13 h-13 sm:w-16 sm:h-16">
             <img 
-              src="/logo.jpg" 
+              src={owlLogo}
+              onError={(e) => { (e.target as HTMLImageElement).src = '/logo.jpg'; }}
               alt="WLSPORTS • OWL VISION PRO" 
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover shadow-2xl border-2 border-amber-400/70 ring-2 ring-emerald-400/50 neon-glow-green-sm bg-black"
+              className="w-13 h-13 sm:w-16 sm:h-16 rounded-2xl object-cover shadow-2xl border-2 border-amber-400/80 ring-2 ring-emerald-400/50 neon-glow-green-sm bg-black shrink-0"
               referrerPolicy="no-referrer"
             />
             <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-950 flex items-center justify-center shadow-[0_0_8px_#22c55e]">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
             </div>
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white font-sans">
+              <h1 className="text-xl sm:text-3xl font-black tracking-tight text-white font-sans truncate">
                 WLSPORTS
               </h1>
-              <span className="text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40 font-mono">
+              <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/40 font-mono shrink-0">
                 PRO
               </span>
             </div>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="gold-gradient-text font-serif font-black text-xs sm:text-sm tracking-wider uppercase">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+              <span className="gold-gradient-text font-serif font-black text-xs sm:text-sm tracking-wider uppercase truncate">
                 OWL VISION PRO
               </span>
-              <span className="text-slate-500 text-xs">·</span>
-              <span className="text-emerald-400 font-bold text-xs tracking-wide flex items-center gap-1">
+              <span className="text-emerald-400 font-bold text-[11px] sm:text-xs tracking-wide flex items-center gap-1 shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#22c55e]" />
                 Grupos Inteligentes
               </span>
             </div>
           </div>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center self-end sm:self-center shrink-0">
           <PWAInstallButton />
           <button 
             onClick={forceUpdateApp}
             title="Recargar y actualizar versión limpia"
-            className="p-2.5 bg-slate-900/90 text-slate-300 hover:text-white rounded-xl hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition-all"
+            className="p-2.5 bg-slate-900/90 text-slate-300 hover:text-white rounded-xl hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition-all shrink-0"
           >
-            <RotateCw className="w-5 h-5" />
+            <RotateCw className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <button 
             onClick={exportData}
             title="Exportar base de datos"
-            className="p-2.5 bg-slate-900/90 text-slate-300 hover:text-amber-300 rounded-xl hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition-all"
+            className="p-2.5 bg-slate-900/90 text-slate-300 hover:text-amber-300 rounded-xl hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 transition-all shrink-0"
           >
-            <Download className="w-5 h-5" />
+            <Download className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <button 
             onClick={() => fileInputRef.current?.click()}
             title="Importar base de datos"
-            className="p-2.5 bg-slate-900/90 text-slate-300 hover:text-emerald-400 rounded-xl hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/40 transition-all"
+            className="p-2.5 bg-slate-900/90 text-slate-300 hover:text-emerald-400 rounded-xl hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/40 transition-all shrink-0"
           >
-            <Upload className="w-5 h-5" />
+            <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <input 
             type="file" 

@@ -1,8 +1,10 @@
-const CACHE_NAME = 'wlsports-v3-mobile';
+const CACHE_NAME = 'wlsports-v5-owl-vision';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/logo.jpg',
+  '/logo.png',
   '/pwa-192x192.png',
   '/pwa-512x512.png',
   '/apple-touch-icon.png'

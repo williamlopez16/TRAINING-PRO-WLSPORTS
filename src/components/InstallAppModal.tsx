@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Smartphone, Download, Check, Share2, PlusSquare, ExternalLink, X, Laptop, Copy, Package, ShieldCheck } from 'lucide-react';
+import owlLogo from '../assets/logo.jpg';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -128,9 +129,12 @@ export function InstallAppBanner() {
       <div className="mb-6 relative overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-3xl p-5 shadow-lg shadow-blue-500/25 border border-blue-400/30">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center flex-shrink-0 shadow-inner">
-              <Smartphone className="w-6 h-6 text-white" />
-            </div>
+            <img 
+              src={owlLogo} 
+              onError={(e) => { (e.target as HTMLImageElement).src = '/logo.jpg'; }}
+              alt="WLSPORTS • OWL VISION PRO" 
+              className="w-12 h-12 rounded-2xl object-cover border border-amber-400/80 ring-1 ring-emerald-400/50 shadow-md shrink-0 bg-black"
+            />
             <div>
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/40 text-xs font-black uppercase tracking-wider text-blue-100 mb-1 border border-white/10">
                 {isIOS ? '🍎 App Oficial para iPhone / iPad' : '📲 App Oficial para tu Celular'}
@@ -269,9 +273,12 @@ function InstallGuideModal({ onClose, isIOS, isAndroid, isInIframe }: ModalProps
         </button>
 
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black shadow-md shadow-blue-500/30">
-            <Smartphone className="w-6 h-6" />
-          </div>
+          <img 
+            src={owlLogo} 
+            onError={(e) => { (e.target as HTMLImageElement).src = '/logo.jpg'; }}
+            alt="WLSPORTS • OWL VISION PRO" 
+            className="w-12 h-12 rounded-2xl object-cover border border-amber-400/80 ring-1 ring-emerald-400/50 shadow-md shrink-0 bg-black"
+          />
           <div>
             <h3 className="text-xl font-black text-white">Instalar WLSPORTS App</h3>
             <p className="text-xs text-slate-400 font-medium">Elige la opción para tu dispositivo:</p>

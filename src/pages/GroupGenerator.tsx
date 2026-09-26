@@ -9,6 +9,7 @@ import { View } from '../App';
 import { Student, GroupConfig, GroupResult } from '../types';
 import { cn } from '../lib/utils';
 import { v4 as uuidv4 } from 'uuid';
+import owlLogo from '../assets/logo.jpg';
 
 const RANDOM_TEAM_NAMES = [
   'Tiburones', 'Águilas Reales', 'Leones', 'Panteras Negras', 'Halcones', 
@@ -407,9 +408,10 @@ export function GroupGenerator({ courseId, onNavigate }: GroupGeneratorProps) {
         </button>
         <div className="flex-1 px-3 flex items-center justify-center gap-2.5 min-w-0">
           <img 
-            src="/logo.jpg" 
+            src={owlLogo} 
+            onError={(e) => { (e.target as HTMLImageElement).src = '/logo.jpg'; }}
             alt="OWL VISION PRO" 
-            className="w-9 h-9 rounded-xl object-cover border border-amber-400/70 ring-1 ring-emerald-400/40 shadow-sm flex-shrink-0 bg-black"
+            className="w-9 h-9 rounded-xl object-cover border border-amber-400/80 ring-1 ring-emerald-400/50 shadow-sm shrink-0 bg-black"
           />
           <div className="text-center min-w-0">
             <h1 className="text-lg sm:text-xl font-black text-white truncate">

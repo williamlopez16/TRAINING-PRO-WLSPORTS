@@ -7,6 +7,7 @@ import { Gender, Student } from '../types';
 import Papa from 'papaparse';
 import * as pdfjsLib from 'pdfjs-dist';
 import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker';
+import owlLogo from '../assets/logo.jpg';
 
 const worker = new PdfWorker();
 pdfjsLib.GlobalWorkerOptions.workerPort = worker;
@@ -226,9 +227,10 @@ export function CourseDetail({ courseId, onNavigate }: CourseDetailProps) {
         </button>
         <div className="flex-1 px-3 flex items-center gap-3 min-w-0">
           <img 
-            src="/logo.jpg" 
+            src={owlLogo} 
+            onError={(e) => { (e.target as HTMLImageElement).src = '/logo.jpg'; }}
             alt="OWL VISION PRO" 
-            className="w-10 h-10 rounded-xl object-cover border border-amber-400/70 ring-1 ring-emerald-400/40 shadow-md flex-shrink-0 bg-black"
+            className="w-10 h-10 rounded-xl object-cover border border-amber-400/80 ring-1 ring-emerald-400/50 shadow-md shrink-0 bg-black"
           />
           <div className="min-w-0">
             <h1 className="text-lg sm:text-xl font-black text-white truncate flex items-center gap-2">
